@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especificación Técnica – Lógica de Cash Collection (PedidosYa)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f7f8fa;
+            color: #333;
+            margin: 0;
+            padding: 2em;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 2em 3em;
+        }
+
+        h1, h2, h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #2c3e50;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-top: 2em;
+            color: #34495e;
+        }
+        
+        h3 {
+            font-size: 1.2em;
+            margin-top: 2em;
+            color: #34495e;
+            border-bottom-style: dashed;
+            border-bottom-width: 1px;
+            padding-bottom: 5px;
+        }
+
+        code {
+            font-family: 'Source Code Pro', monospace;
+            background-color: #ecf0f1;
+            color: #c0392b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 1.5em;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: 0.9em;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 0.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Lógica de Negocio para Integración con PedidosYa</h1>
+
+        <h2>1. Funcionalidad Cash Collection (COD)</h2>
+        <h3>1.1 Propuesta</h3>
+        <p>Cash Collection (COD) es un modelo donde el cliente paga en efectivo al repartidor, pero la sucursal lo gestiona como una transacción online. PedidosYa se encarga de recolectar y conciliar el efectivo, simplificando la contabilidad de la sucursal.</p>
+
+        <h3>1.2 Lógica de Implementación</h3>
+        <ol>
+            <li><strong>Normalizar cadenas:</strong> Se limpian y estandarizan los valores de <code>payment.type</code> y <code>payment.status</code>.</li>
+            <li><strong>Obtener de forma segura <code>payRestaurantValue</code>:</strong> Se extrae el valor de <code>price?.payRestaurant</code>, asignando <code>"1"</code> por defecto si no existe.</li>
+            <li><strong>Clasificar el tipo de pago:</strong> Se determina si es Efectivo (<code>typeId = 3</code>) o Crédito (<code>typeId = 2</code>) basándose en el tipo de pago y <code>payRestaurantValue</code>.</li>
+            <li><strong>Forzar a CRÉDITO si es pago online:</strong> Si el estado del pago es <code>paid</code> o <code>pagado</code>, se marca como online y se fuerza el tipo a Crédito.</li>
+        </ol>
+
+        <h3>1.3 Validaciones a Implementar</h3>
+        <ul>
+            <li>Normalización de cadenas para <code>payment.type</code> y <code>payment.status</code>.</li>
+            <li>Obtención segura de <code>price?.payRestaurant</code> con valor por defecto.</li>
+            <li>El chequeo de pago en efectivo requiere que el tipo incluya “cash” o “efectivo” y que <code>payRestaurantValue</code> sea distinto de "0".</li>
+            <li>Asignación correcta de <code>paymentNews.typeId</code>, <code>remaining</code> y <code>partial</code> según el estado del pago.</li>
+            <li>Forzado del tipo de pago a CRÉDITO si la transacción es online.</li>
+        </ul>
+        
+        <h3>1.4 Ejemplo de Código</h3>
+        <pre><code>// platforms/interfaces/pedidosYa.js::paymentenMapper
+let paymentTemp       = payment.type.toLowerCase().trim();
+let paymentStatusTemp = payment.status.toLowerCase().trim();
+
+let payRestaurantValue = String(price?.payRestaurant ?? "1");
+
+if ((paymentTemp.includes("cash") || paymentTemp.includes("efectivo"))
+    && payRestaurantValue !== "0") {
+  paymentNews.typeId = paymentType.Efectivo.paymentId; // 3
+  const total = payment.subtotal - paymentNews.discount;
+  paymentNews.remaining = ['paid','pagado'].includes(paymentStatusTemp)
+    ? 0
+    : truncarADosDecimales(total);
+  paymentNews.partial   = ['paid','pagado'].includes(paymentStatusTemp)
+    ? total
+    : 0;
+} else {
+  paymentNews.typeId = paymentType.CREDIT.paymentId; // 2
+}
+
+paymentNews.online = ['paid','pagado'].includes(paymentStatusTemp);
+if (paymentNews.online) {
+  paymentNews.typeId = paymentType.CREDIT.paymentId;
+}</code></pre>
+
+        <h3>1.5 Casos de Prueba Recomendados</h3>
+        <ul>
+            <li><code>payment.type = "Cash"</code>, <code>price.payRestaurant = 150</code></li>
+            <li><code>payment.type = "Efectivo"</code>, <code>price.payRestaurant = "0"</code></li>
+            <li><code>payment.type = "Online"</code>, <code>price.payRestaurant = 0</code></li>
+            <li>Objeto <code>price</code> ausente (null/undefined)</li>
+        </ul>
+
+        <h2>2. Validación de <code>ownDelivery</code></h2>
+        <p><strong>Propósito:</strong> Determinar si un pedido utiliza el servicio de Delivery Propio para impedir la activación de Cash Collection en esos casos, evitando cobros incorrectos.</p>
+
+        <h3>2.1 Definición</h3>
+        <pre><code>const hasDelivery       = data.order.delivery != null;
+const noRiderPickupTime = data.order.delivery?.riderPickupTime == null;
+const hasPickup         = data.order.pickup != null;
+
+const ownDelivery = hasDelivery && noRiderPickupTime && hasPickup;</code></pre>
+
+        <h3>2.2 Cuándo es <code>true</code></h3>
+        <p>La variable <code>ownDelivery</code> es <code>true</code> solo si se cumplen las tres condiciones simultáneamente:</p>
+        <ul>
+            <li>El objeto <code>delivery</code> existe.</li>
+            <li>El campo <code>riderPickupTime</code> dentro de <code>delivery</code> es nulo o no está definido.</li>
+            <li>El objeto <code>pickup</code> existe.</li>
+        </ul>
+
+        <h3>2.3 Cuándo es <code>false</code></h3>
+        <p>Basta que falle una de las tres condiciones para que <code>ownDelivery</code> sea <code>false</code>.</p>
+        
+        <h3>2.4 Integración con COD</h3>
+        <pre><code>if (ownDelivery) {
+  // NO activar Cash Collection
+  return;
+}
+
+// Si ownDelivery === false, aplicamos lógica de Parte 1
+let payRestaurantValue = String(price?.payRestaurant ?? "1");
+/* ... */</code></pre>
+
+        <h3>2.5 Casos de Prueba Recomendados</h3>
+        <table>
+            <thead><tr><th>Caso</th><th>delivery</th><th>riderPickupTime</th><th>pickup</th><th>ownDelivery</th><th>COD válido?</th></tr></thead>
+            <tbody>
+                <tr><td>Pedido PedidosYa (sin pickup)</td><td>existe</td><td>existe</td><td>null</td><td>false</td><td>según payRestaurant</td></tr>
+                <tr><td>Delivery Propio sin riderPickupTime</td><td>existe</td><td>null</td><td>existe</td><td>true</td><td>no</td></tr>
+                <tr><td>Sin sección delivery</td><td>null</td><td>—</td><td>existe</td><td>false</td><td>según payRestaurant</td></tr>
+                <tr><td>Inconsistente (pickup sí, delivery no)</td><td>null</td><td>—</td><td>existe</td><td>false</td><td>según payRestaurant</td></tr>
+            </tbody>
+        </table>
+
+        <h2>3. Normalización de <code>customerComment</code></h2>
+        <p><strong>Propósito:</strong> Ajustar el texto de la comanda para reflejar el modelo Cash Collection y evitar confusión en la sucursal sobre quién debe cobrar.</p>
+
+        <h3>3.1 Detección de Cash Collection</h3>
+        <pre><code>let payRestaurantValue = String(price?.payRestaurant ?? "1");
+const ownDelivery      = data.order.delivery != null
+                      && data.order.delivery?.riderPickupTime == null
+                      && data.order.pickup != null;
+
+let originalComment    = data.order.customerComment ?? "";</code></pre>
+        
+        <h3>3.2 Lógica de Reemplazo</h3>
+        <pre><code>if (ownDelivery && payRestaurantValue === "0") {
+  originalComment = originalComment.replace(
+    /Medio de pago:\s*Efectivo/i,
+    "Medio de pago: Cash Collection"
+  );
+}
+
+paymentNews.customerComment = originalComment;</code></pre>
+
+        <h3>3.3 Ejemplos</h3>
+        <table>
+            <thead><tr><th>Escenario</th><th>ownDelivery</th><th>payRestaurantValue</th><th>Original</th><th>Resultante</th></tr></thead>
+            <tbody>
+                <tr><td>Delivery Propio + Cash Collection</td><td>true</td><td>"0"</td><td><code>"Medio de pago: Efectivo..."</code></td><td><code>"Medio de pago: Cash Collection..."</code></td></tr>
+                <tr><td>Delivery Propio + Cobro en sucursal</td><td>true</td><td>"1500"</td><td><code>"Medio de pago: Efectivo..."</code></td><td>(sin cambios)</td></tr>
+                <tr><td>Plataforma PedidosYa</td><td>false</td><td>"0"</td><td><code>"Medio de pago: Efectivo..."</code></td><td>(sin cambios)</td></tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</body>
+</html>
