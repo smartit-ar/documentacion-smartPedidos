@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Índice de Documentación de APIs</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      padding: 2rem 3rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      font-size: 2em;
+      color: #2c3e50;
+      border-bottom: 2px solid #e0e4e8;
+      padding-bottom: 0.5em;
+      margin-bottom: 1em;
+    }
+    p {
+        color: #555;
+        font-size: 1.1em;
+        margin-bottom: 2em;
+    }
+    
+    /* Estilos del Acordeón */
+    .accordion {
+      border-top: 1px solid #d1d9e2;
+    }
+    .accordion-item {
+      border-bottom: 1px solid #d1d9e2;
+    }
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1em 0;
+      cursor: pointer;
+      list-style: none; /* Oculta el marcador de flecha por defecto */
+    }
+    .accordion-header::-webkit-details-marker {
+        display: none; /* Oculta el marcador en navegadores WebKit */
+    }
+    .accordion-header h2 {
+      margin: 0;
+      font-size: 1.3em;
+      color: #34495e;
+    }
+    .accordion-icon {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #007bff;
+      transition: transform 0.2s ease-in-out;
+    }
+    .accordion-item[open] .accordion-icon {
+      transform: rotate(45deg);
+    }
+    .accordion-content {
+      padding: 0 1em 1.5em 1em;
+    }
+    .doc-link {
+      display: block;
+      padding: 0.8em 1.2em;
+      margin-bottom: 0.5em;
+      border: 1px solid #e0e4e8;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #333;
+      transition: all 0.2s ease-in-out;
+    }
+    .doc-link:hover {
+      border-color: #007bff;
+      background-color: #f8faff;
+      transform: translateX(5px);
+    }
+    .doc-link strong {
+      display: block;
+      font-size: 1.1em;
+      color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Portal de Documentación de APIs</h1>
+    <p>Haz clic en una categoría para expandir y ver los documentos disponibles.</p>
+    
+    <div class="accordion">
+      
+      <!-- =============================================================== -->
+      <!-- PANEL 1: Documentación de Arquitectura                          -->
+      <!-- Para agregar una nueva categoría, copia este bloque <details>   -->
+      <!-- =============================================================== -->
+      <details class="accordion-item">
+        <summary class="accordion-header">
+          <h2>Documentación de Arquitectura</h2>
+          <span class="accordion-icon">+</span>
+        </summary>
+        <div class="accordion-content">
+          <!-- Para agregar un nuevo enlace, copia una línea <a> -->
+          <a href="#" class="doc-link"><strong>Arquitectura General</strong></a>
+          <a href="#" class="doc-link"><strong>Diagrama de Flujo de Datos</strong></a>
+        </div>
+      </details>
+
+      <!-- =============================================================== -->
+      <!-- PANEL 2: Documentación de Funcionalidades                       -->
+      <!-- =============================================================== -->
+      <details class="accordion-item">
+        <summary class="accordion-header">
+          <h2>Documentación de Funcionalidades</h2>
+          <span class="accordion-icon">+</span>
+        </summary>
+        <div class="accordion-content">
+          <a href="#" class="doc-link"><strong>Funcionalidad de Sincronización UTC</strong></a>
+          <a href="https://matiasasmartfram.github.io/spdocumentation/funcionalidad_autoaceptacion" class="doc-link"><strong>Funcionalidad de Autoaceptacion</strong></a>
+        </div>
+      </details>
+      
+      <!-- =============================================================== -->
+      <!-- PANEL 3: Documentación para Desarrollo                          -->
+      <!-- =============================================================== -->
+      <details class="accordion-item" open> <!-- El atributo "open" hace que empiece abierto -->
+        <summary class="accordion-header">
+          <h2>Documentación para Desarrollo</h2>
+          <span class="accordion-icon">+</span>
+        </summary>
+        <div class="accordion-content">
+          <a href="https://matiasasmartfram.github.io/spdocumentation/documentacion_sustitutos" class="doc-link"><strong>Documentacion para Gestión de Sabores Sustitutos (Rappi)</strong></a>
+          <a href="https://matiasasmartfram.github.io/spdocumentation/documentacion_prendido_apagado" class="doc-link"><strong>Documentacion para Disponibilidad de Catálogo</strong></a>
+          <a href="https://matiasasmartfram.github.io/spdocumentation/documentacion_promociones" class="doc-link"><strong>Documentacion para Desarrollo de Promociones</strong></a>
+        </div>
+      </details>
+
+    </div>
+  </div>
+
+  <script>
+    // Este script mejora la experiencia cambiando el ícono de '+' a 'x'
+    const accordionItems = document.querySelectorAll('.accordion-item');
+    accordionItems.forEach(item => {
+      // Sincronizar el ícono al cargar la página
+      const icon = item.querySelector('.accordion-icon');
+      if (item.open) {
+        icon.textContent = '×';
+        icon.style.transform = 'rotate(45deg)';
+      } else {
+        icon.textContent = '+';
+        icon.style.transform = 'rotate(0deg)';
+      }
+
+      // Añadir el listener para los cambios
+      item.addEventListener('toggle', event => {
+        const icon = event.target.querySelector('.accordion-icon');
+        if (event.target.open) {
+          icon.textContent = '×';
+          icon.style.transform = 'rotate(45deg)';
+        } else {
+          icon.textContent = '+';
+          icon.style.transform = 'rotate(0deg)';
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
+</html>
+
+
