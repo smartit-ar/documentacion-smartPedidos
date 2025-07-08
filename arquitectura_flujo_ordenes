@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación: El Viaje de una Orden de Third Party</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f7f8fa;
+            color: #333;
+            margin: 0;
+            padding: 2em;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 2em 3em;
+        }
+
+        h1, h2, h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.7em;
+            margin-top: 2.5em;
+            color: #34495e;
+        }
+        
+        h3 {
+            font-size: 1.3em;
+            margin-top: 2em;
+            color: #34495e;
+            border-bottom-style: dashed;
+            border-bottom-width: 1px;
+            padding-bottom: 5px;
+        }
+
+        code {
+            font-family: 'Source Code Pro', monospace;
+            background-color: #ecf0f1;
+            color: #c0392b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 0.8em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: 700;
+        }
+        
+        .status-continue { color: #27ae60; }
+        .status-end { color: #e74c3c; font-weight: 700; }
+
+        .flow-diagram {
+            margin-top: 2em;
+            text-align: center;
+        }
+        .flow-step {
+            background-color: #eaf2f8;
+            border: 2px solid #aed6f1;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 0 auto 15px auto;
+            max-width: 80%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .flow-step.db { background-color: #e8f6f3; border-color: #a3e4d7; }
+        .flow-step.pos { background-color: #fef5e7; border-color: #f8c471; }
+        .flow-step.sqs { background-color: #fdebd0; border-color: #f5b041; }
+        .flow-step h4 { margin: 0 0 5px 0; color: #2874a6; }
+        .flow-arrow {
+            font-size: 1.8em;
+            color: #aed6f1;
+            margin: -5px 0;
+        }
+        .flow-split {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .flow-branch {
+            flex: 1;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .flow-branch h4 { color: #7f8c8d; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Mapa Conceptual: El Viaje de una Orden de Third Party</h1>
+        <p>Este documento describe el ciclo de vida completo de un pedido proveniente de una plataforma externa (ej. Pedigrido), desde su creación hasta su finalización, explicando cómo interactúan la Plataforma de Servicios y el Punto de Venta (POS).</p>
+
+        <h2>Etapa 1: El Origen - Creación del Pedido</h2>
+        <ol>
+            <li><strong>Punto de Partida:</strong> Un sistema externo realiza una llamada <code>POST</code> a un endpoint de la Plataforma de Servicios.</li>
+            <li><strong>Acción Inmediata:</strong> La aplicación recibe la información del pedido.</li>
+            <li><strong>Primera Transformación:</strong>
+                <ul>
+                    <li>El controlador de la API procesa los datos recibidos.</li>
+                    <li>Convierte la orden en un documento estandarizado para MongoDB, denominado <strong><code>news</code></strong>.</li>
+                    <li>Se le asigna el estado inicial: <code>typeNews</code> = <strong><code>new_ord</code></strong> (typeId: 1).</li>
+                </ul>
+            </li>
+            <li><strong>Comunicación con el POS (Ida):</strong>
+                <ul>
+                    <li>La aplicación ejecuta la función <code>pushNewToQueue()</code>.</li>
+                    <li>La <code>news</code> recién creada se envía a la cola SQS del Punto de Venta (POS).</li>
+                </ul>
+            </li>
+        </ol>
+        <p><strong>Resultado Etapa 1:</strong> La orden existe en la base de datos con un <code>trace</code> inicial y ha sido enviada al local para su gestión.</p>
+
+        <h2>Etapa 2: El Bucle de Comunicación (Plataforma ↔ POS)</h2>
+        <p>Este es el corazón del proceso. Es un ciclo constante de mensajes entre la aplicación central y el POS.</p>
+
+        <h3>A. El POS Actúa y Responde</h3>
+        <ol>
+            <li><strong>Acción en el Local:</strong> El personal del POS visualiza la orden y realiza una acción (confirmar, rechazar, etc.).</li>
+            <li><strong>Respuesta del POS:</strong> El POS modifica el <code>typeId</code> de la <code>news</code> para reflejar la acción y la envía de vuelta a una cola SQS central.</li>
+        </ol>
+
+        <h3>B. La Plataforma Procesa la Novedad</h3>
+        <ol>
+            <li><strong>Punto de Entrada del Bucle:</strong> La función <code>pollFromQueue()</code> recoge el mensaje del POS.</li>
+            <li><strong>El Gran Distribuidor (<code>SetNews</code>):</strong> La <code>news</code> se pasa al dispatcher <code>set-news.js</code>, que utiliza un <code>switch</code> para leer el <code>typeId</code> y elegir la Estrategia correcta.</li>
+        </ol>
+
+        <h3>C. La Estrategia Entra en Juego</h3>
+        <p>Cada <code>typeNews</code> activa una estrategia diferente que define el siguiente paso.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th><code>typeNews</code> (ID) enviado por POS</th>
+                    <th>Estrategia Ejecutada</th>
+                    <th>Acción y Resultado del Ciclo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>receive_ord</code> (10)</td><td><code>ReceiveStrategy</code></td><td class="status-continue">Actualiza estado a "Recibido". El ciclo continúa.</td></tr>
+                <tr><td><code>view_ord</code> (11)</td><td><code>ViewStrategy</code></td><td class="status-continue">Actualiza estado a "Visto". El ciclo continúa.</td></tr>
+                <tr><td><code>confirm_ord</code> (5)</td><td><code>ConfirmStrategy</code></td><td class="status-continue">Actualiza estado a "Confirmado". Puede notificar a la plataforma. El ciclo continúa.</td></tr>
+                <tr><td><code>ready_ord</code> (15)</td><td><code>ReadyStrategy</code></td><td class="status-continue">Actualiza estado a "Listo para Despacho". El ciclo continúa.</td></tr>
+                <tr><td><code>disp_ord</code> (3)</td><td><code>DispatchStrategy</code></td><td class="status-end">Actualiza estado a "Despachado". FIN DEL CICLO.</td></tr>
+                <tr><td><code>deliv_ord</code> (14)</td><td><code>DeliveryStrategy</code></td><td class="status-end">Actualiza estado a "Entregado". FIN DEL CICLO.</td></tr>
+                <tr><td><code>rej_ord</code> (2)</td><td><code>BranchRejectStrategy</code></td><td class="status-end">Actualiza estado a "Rechazado por Local". Notifica a la plataforma. FIN DEL CICLO.</td></tr>
+                <tr><td><code>platform_rej_ord</code> (4)</td><td><code>PlatformRejectStrategy</code></td><td class="status-end">Actualiza estado a "Rechazado por Plataforma". FIN DEL CICLO.</td></tr>
+            </tbody>
+        </table>
+
+        <h3>D. La Rueda Sigue Girando</h3>
+        <ol>
+            <li><strong>Actualización en BD:</strong> La estrategia actualiza la <code>news</code> en MongoDB, añadiendo un nuevo <code>trace</code> que documenta el cambio.</li>
+            <li><strong>Comunicación con el POS (Vuelta):</strong> Si el ciclo no ha terminado, la aplicación vuelve a usar <code>pushNewToQueue()</code> para enviar la <code>news</code> actualizada de vuelta al POS.</li>
+        </ol>
+
+        <h2>Etapa 3: El Fin del Camino - Estados Terminales</h2>
+        <p>El ciclo se detiene cuando la <code>news</code> alcanza un estado que no requiere más interacción del POS.</p>
+        <ul>
+            <li><strong>Rechazo (<code>rej_ord</code> o <code>platform_rej_ord</code>):</strong> La orden se cancela. La estrategia notifica a la plataforma externa si es necesario y actualiza el estado final. No se envía nada más al POS.</li>
+            <li><strong>Finalización Exitosa (<code>disp_ord</code> o <code>deliv_ord</code>):</strong> La orden se considera completada. La estrategia actualiza el estado final y el proceso termina.</li>
+        </ul>
+
+        <h2>Diagrama de Flujo Visual</h2>
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <h4>1. API POST: Third Party</h4>
+                <span>(ej. Pedigrido)</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+                <h4>2. Controlador API</h4>
+                <span>Transforma a <code>news</code> (typeId: 1)</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step db">
+                <h4>3. Base de Datos (MongoDB)</h4>
+                <span>Guarda la <code>news</code> inicial</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step sqs">
+                <h4>4. SQS (Cola del POS)</h4>
+                <span><code>pushNewToQueue()</code> envía la orden al local</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step pos">
+                <h4>5. Punto de Venta (POS)</h4>
+                <span>Personal actúa y cambia el <code>typeId</code></span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step sqs">
+                <h4>6. SQS (Cola Central)</h4>
+                <span>POS envía la <code>news</code> actualizada</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+                <h4>7. Plataforma de Servicios</h4>
+                <span><code>pollFromQueue()</code> → <code>SetNews</code> → <strong>Estrategia</strong></span>
+            </div>
+            <div class="flow-split">
+                <div class="flow-branch">
+                    <h4>SI ES ESTADO TERMINAL</h4>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step" style="background-color: #fadbd8; border-color: #f1948a;">
+                        <h4>FIN DEL CICLO</h4>
+                    </div>
+                </div>
+                <div class="flow-branch">
+                    <h4>SI NO ES ESTADO TERMINAL</h4>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-step db">
+                        <h4>8. Base de Datos (MongoDB)</h4>
+                        <span>Actualiza <code>news</code> con nuevo <code>trace</code></span>
+                    </div>
+                    <div class="flow-arrow">↑</div>
+                    <p><strong>Vuelve al paso 4 (Bucle)</strong></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
