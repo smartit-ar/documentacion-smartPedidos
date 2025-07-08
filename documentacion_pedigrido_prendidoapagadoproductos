@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation: Gestión de Stock (/locals/stock)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f7f8fa;
+            color: #333;
+            margin: 0;
+            padding: 2em;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 2em 3em;
+        }
+
+        h1, h2, h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #2c3e50;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-top: 2em;
+            color: #34495e;
+        }
+        
+        h3 {
+            font-size: 1.2em;
+            margin-top: 2em;
+            color: #34495e;
+            border-bottom-style: dashed;
+            border-bottom-width: 1px;
+            padding-bottom: 5px;
+        }
+
+        code {
+            font-family: 'Source Code Pro', monospace;
+            background-color: #ecf0f1;
+            color: #c0392b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 1.5em;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: 0.9em;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 0.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Documentación de Endpoints: <code>/locals/stock</code></h1>
+
+        <h2>1. Endpoint: Actualizar Estado de Productos</h2>
+        <p><strong>URL:</strong> <code>POST /locals/stock</code></p>
+        <p><strong>Descripción:</strong> Permite notificar cambios de estado (activado/desactivado) de uno o varios productos para una sucursal específica.</p>
+
+        <h3>1.1 Headers obligatorios</h3>
+        <ul>
+            <li><code>Authorization: Bearer <token></code></li>
+            <li><code>Content-Type: application/json</code></li>
+        </ul>
+
+        <h3>1.2 Request Body</h3>
+        <pre><code>{
+  "branch": 1234,          // ID numérico de la sucursal (POS)
+  "articles": [              // Lista de productos a actualizar
+    {
+      "id": "000001",        // SKU 
+      "name": "Bombón Escocés",
+      "status": false        // false = desactivar, true = activar
+    },
+    {
+      "id": "000002",        // SKU 
+      "name": "Helado 1kg",
+      "status": true
+    }
+  ]
+}</code></pre>
+
+        <h2>2. Endpoint: Consulta de Estado de Productos</h2>
+        <p><strong>URL:</strong> <code>GET /locals/stock</code></p>
+        <p><strong>Descripción:</strong> Obtiene el estado actual de los productos en una o varias sucursales.</p>
+
+        <h3>2.1 Headers</h3>
+        <ul>
+            <li><code>Authorization: Bearer <token></code></li>
+        </ul>
+
+        <h3>2.2 Query Parameters</h3>
+        <table>
+            <thead><tr><th>Parámetro</th><th>Descripción</th></tr></thead>
+            <tbody>
+                <tr><td><code>branch</code></td><td>ID numérico de la sucursal a consultar. Obligatorio.</td></tr>
+            </tbody>
+        </table>
+
+        <h3>2.3 Respuesta Exitosa</h3>
+        <p><strong>Si se envía <code>branch</code> (una sola sucursal):</strong></p>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "branch": "123",
+    "articles": [
+      {
+        "id": "000001",
+        "name": "Bombón Escocés",
+        "status": false,
+        "lastUpdate": "2025-06-05T14:23:10Z"
+      },
+      {
+        "id": "000002",
+        "name": "Helado 1kg",
+        "status": true,
+        "lastUpdate": "2025-06-05T09:12:45Z"
+      },
+      {
+        "id": "000003",
+        "name": "Bombón Suizo",
+        "status": true,
+        "lastUpdate": "2025-06-04T18:35:22Z"
+      }
+    ]
+  }
+}</code></pre>
+
+     
+
+</body>
+</html>
