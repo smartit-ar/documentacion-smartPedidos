@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentación: Reglas de Negocio por Cadena y Plataforma</title>
+  
+  <!-- Carga de la librería Prism.js para resaltado de sintaxis -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code:wght@400&display=swap');
+
+    :root {
+      --bg-color: #f4f7f9;
+      --card-bg-color: #ffffff;
+      --text-color: #212529;
+      --text-muted-color: #6c757d;
+      --border-color: #dee2e6;
+      --primary-color: #0056b3;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 2em;
+      line-height: 1.7;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; }
+    
+    .main-header { text-align: center; margin-bottom: 3em; }
+    .main-header h1 { margin: 0 0 0.25em 0; font-size: 2.5em; color: var(--text-color); }
+    
+    section {
+        background-color: var(--card-bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 2.5em;
+        padding: 2em;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    h2 { font-size: 1.8em; margin-top: 0; color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5em; }
+    h3 { font-size: 1.4em; margin-top: 1.5em; }
+    h4 { font-size: 1.1em; font-weight: 700; margin-bottom: 0.5em; }
+    
+    .code-block { position: relative; margin-top: 1em; }
+    
+    pre[class*="language-"] {
+      padding: 2em 1.5em 1.5em 1.5em !important;
+      margin: 0 !important;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace !important;
+      font-size: 0.9em !important;
+    }
+    
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #444c5d;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8em;
+      transition: background-color 0.2s;
+      z-index: 10;
+    }
+    
+    .copy-btn:hover { background-color: #555e71; }
+    .copy-btn.copied { background-color: #28a745; }
+    
+    ul { padding-left: 20px; }
+    li { margin-bottom: 0.5em; }
+    
+    code {
+      font-family: 'Fira Code', monospace;
+      background-color: #e9ecef;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+    
+    .endpoint {
+      background-color: var(--bg-color);
+      padding: 0.5em 1em;
+      border-radius: 4px;
+      font-family: 'Fira Code', monospace;
+      margin: 0.5em 0;
+      display: inline-block;
+    }
+    .endpoint .method { font-weight: 700; }
+    .endpoint .post { color: #28a745; }
+    .endpoint .get { color: #0d6efd; }
+    .endpoint .put { color: #fd7e14; }
+    .endpoint .delete { color: #dc3545; }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <header class="main-header">
+      <h1>Documentación: Reglas de Negocio por Cadena y Plataforma</h1>
+    </header>
+
+    <section id="purpose">
+      <h2>1. Propósito y Objetivo</h2>
+      <p>Esta funcionalidad introduce un sistema para definir reglas de negocio específicas que se aplican a la combinación de una <strong>Cadena</strong> (<code>chain</code>) y una <strong>Plataforma</strong> (<code>platform</code>). El objetivo es permitir una configuración granular y flexible (ej: tiempos de preparación, auto-aceptación de pedidos) sin modificar el código principal, desacoplando la lógica de negocio de la implementación de las integraciones.</p>
+      <p>Esto permite que, por ejemplo, la cadena "Grido" tenga un tiempo de preparación de 15 minutos para "PedidosYa", pero de 20 minutos para "Rappi".</p>
+    </section>
+
+    <section id="architecture">
+      <h2>2. Arquitectura de Datos: Nueva Colección <code>chainBusinessRules</code></h2>
+      <p>Para almacenar estas reglas, se ha creado una nueva colección en MongoDB llamada <code>chainbusinessrules</code>. Cada documento en esta colección representa un único "contrato" de reglas entre una cadena y una plataforma.</p>
+      
+      <h3>2.1. Modelo Mongoose (<code>api/src/models/chainBusinessRules.js</code>)</h3>
+      <p>El esquema de Mongoose define la estructura, validaciones y relaciones de los documentos.</p>
+      <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code class="language-javascript">
+import mongoose, { Schema } from 'mongoose';
+import uniqueValidator from 'mongoose-unique-validator';
+
+const chainBusinessRulesSchema = new Schema({
+    // Referencia a la colección 'chains'
+    chainId: {
+        type: Schema.Types.ObjectId,
+        ref: 'chain',
+        required: true
+    },
+    // Referencia a la colección 'platforms'
+    platformId: {
+        type: Schema.Types.ObjectId,
+        ref: 'platform',
+        required: true
+    },
+    // Objeto anidado que contiene las reglas
+    rules: {
+        autoAccept: {
+            type: Boolean,
+            default: false,
+            required: true
+        },
+        preparationTime: {
+            type: Number,
+            enum: [5, 10, 15, 20, 25, 30],
+            required: true
+        }
+    }
+}, {
+    timestamps: true, // Gestiona createdAt y updatedAt
+    strict: false
+});
+
+// Índice único compuesto para prevenir duplicados
+chainBusinessRulesSchema.index({ platformId: 1, chainId: 1 }, { unique: true });
+
+// Plugins para validación y formato JSON
+chainBusinessRulesSchema.plugin(uniqueValidator);
+chainBusinessRulesSchema.plugin(require('@meanie/mongoose-to-json'));
+
+module.exports = mongoose.model('chainBusinessRules', chainBusinessRulesSchema);
+        </code></pre>
+      </div>
+      
+      <h3>2.2. Ejemplo de Documento en MongoDB</h3>
+      <p>Así se ve un documento en la colección <code>chainbusinessrules</code>, vinculando "Grido" con "PedidosYa":</p>
+      <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code class="language-json">
+{
+  "_id": { "$oid": "6887bbc2876ae6b43efc4fa4" },
+  "chainId": { "$oid": "3b0ed8fa297fb07209439589" },
+  "platformId": { "$oid": "a24d12527267ecfd0b946390" },
+  "rules": {
+    "autoAccept": true,
+    "preparationTime": 15
+  },
+  "createdAt": { "$date": "2025-07-28T18:04:50.454Z" },
+  "updatedAt": { "$date": "2025-07-28T18:04:50.454Z" }
+}
+        </code></pre>
+      </div>
+    </section>
+
+    <section id="api">
+      <h2>3. API para la Gestión de Reglas (CRUD)</h2>
+      <p>Se han expuesto nuevos endpoints para permitir la gestión completa (Crear, Leer, Actualizar, Eliminar) de estas reglas desde el Backoffice.</p>
+      
+      <h3>3.1. Controlador (<code>api/src/controllers/chainBusinessRules.js</code>)</h3>
+      <p>Este controlador orquesta las operaciones CRUD. Reutiliza los helpers genéricos para mantener la simplicidad y consistencia.</p>
+      <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code class="language-javascript">
+import model from '../models/chainBusinessRules';
+import _helpers from './_helpers';
+
+// Encuentra todas las reglas (con filtros opcionales)
+const findAll = (req, res) => _helpers.find(model, req, res);
+
+// Encuentra una regla por su ID
+const findById = (req, res) => _helpers.findById(model, req, res);
+
+// Crea una nueva regla
+const saveOne = (req, res) => _helpers.save(model, req, res);
+
+// Actualiza una regla existente
+const updateOne = (req, res) => _helpers.findByIdAndUpdate(model, req, res);
+
+// Elimina una regla existente (eliminación física)
+const deleteOne = (req, res) => _helpers.destroyModel(model, req, res);
+
+module.exports = { findAll, findById, saveOne, updateOne, deleteOne };
+        </code></pre>
+      </div>
+
+      <h3>3.2. Rutas (<code>api/src/routes/chainBusinessRules.js</code>)</h3>
+      <p>Este archivo define los endpoints y los asocia a las funciones del controlador.</p>
+      <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code class="language-javascript">
+import express from 'express';
+const router = express.Router();
+import controller from '../controllers/chainBusinessRules';
+
+// Rutas para listar todas las reglas y crear una nueva
+router.route('/')
+  .get(controller.findAll)
+  .post(controller.saveOne);
+
+// Rutas para obtener, actualizar o eliminar una regla específica por su ID
+router.route('/:id')
+  .get(controller.findById)
+  .put(controller.updateOne)
+  .delete(controller.deleteOne);
+
+module.exports = router;
+        </code></pre>
+      </div>
+    </section>
+    
+    <section id="usage">
+      <h2>4. Ejemplos de Uso de la API</h2>
+      <p>A continuación se muestran ejemplos de cómo interactuar con los nuevos endpoints.</p>
+
+      <h4>4.1. Crear una Nueva Regla</h4>
+      <div class="endpoint"><span class="method post">POST</span> /api/chainBusinessRules</div>
+      <p><strong>Propósito:</strong> Crear la regla para "Grido" y "PedidosYa".</p>
+      <p><strong>Request Body (JSON):</strong></p>
+      <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code class="language-json">
+{
+  "chainId": "3b0ed8fa297fb07209439589",
+  "platformId": "a24d12527267ecfd0b946390",
+  "rules": {
+    "autoAccept": true,
+    "preparationTime": 15
+  }
+}
+        </code></pre>
+      </div>
+      <p><strong>Response (200 OK / 201 Created):</strong></p>
+      <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code class="language-json">
+{
+    "chainId": "3b0ed8fa297fb07209439589",
+    "platformId": "a24d12527267ecfd0b946390",
+    "rules": {
+        "autoAccept": true,
+        "preparationTime": 15
+    },
+    "createdAt": "2025-07-28T18:04:50.454Z",
+    "updatedAt": "2025-07-28T18:04:50.454Z",
+    "id": "6887bbc2876ae6b43efc4fa4"
+}
+        </code></pre>
+      </div>
+
+      <h4>4.2. Obtener Todas las Reglas para una Cadena Específica</h4>
+      <div class="endpoint"><span class="method get">GET</span> /api/chainBusinessRules</div>
+      <p><strong>Propósito:</strong> Consultar todas las reglas configuradas para la cadena "Grido".</p>
+      <p><strong>URL con Query Parameters:</strong></p>
+       <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code>/api/chainBusinessRules?_filters={"chainId":"3b0ed8fa297fb07209439589"}&_populates=["platformId","chainId"]</code></pre>
+      </div>
+      <p><strong>Response (200 OK):</strong></p>
+       <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code class="language-json">
+[
+    {
+        "rules": { "autoAccept": true, "preparationTime": 15 },
+        "id": "6887bbc2876ae6b43efc4fa4",
+        "chainId": { // <-- Objeto poblado gracias a _populates
+            "id": "3b0ed8fa297fb07209439589",
+            "chain": "Grido",
+            "domain": "www.grido.com.ar"
+        },
+        "platformId": { // <-- Objeto poblado gracias a _populates
+            "id": "a24d12527267ecfd0b946390",
+            "name": "PedidosYa",
+            "internalCode": 1
+        },
+        "createdAt": "...",
+        "updatedAt": "..."
+    }
+    // ... (otros documentos si Grido tiene reglas para otras plataformas)
+]
+        </code></pre>
+      </div>
+      
+      <h4>4.3. Actualizar una Regla Existente</h4>
+      <div class="endpoint"><span class="method put">PUT</span> /api/chainBusinessRules/6887bbc2876ae6b43efc4fa4</div>
+      <p><strong>Propósito:</strong> Cambiar el <code>preparationTime</code> de 15 a 20 para la regla Grido-PedidosYa.</p>
+      
+      <h4>4.4. Eliminar una Regla</h4>
+      <div class="endpoint"><span class="method delete">DELETE</span> /api/chainBusinessRules/6887bbc2876ae6b43efc4fa4</div>
+      <p><strong>Propósito:</strong> Eliminar la regla de negocio entre Grido y PedidosYa. (Respuesta <code>204 No Content</code>)</p>
+    </section>
+    
+    <section id="branch-impact">
+      <h2>Impacto a Nivel de Sucursal (<code>branch</code>)</h2>
+      <p>Un cambio fundamental es que las reglas de negocio, una vez definidas, se <strong>incrustan directamente en el documento de la sucursal</strong> (<code>branch</code>) correspondiente. Esto optimiza las consultas cada vez que se necesita acceder a las reglas para una plataforma específica de una sucursal.</p>
+      <p>El documento de la sucursal ahora contiene un objeto <code>rules</code> dentro de cada elemento del array <code>platforms</code>.</p>
+       <div class="code-block">
+        <button class="copy-btn">Copiar</button>
+        <pre><code class="language-json">
+{
+  "_id": { "$oid": "9edff0268fc425078eb02cf0" },
+  "branchId": 5161,
+  "name": "GRIDO - SAN LUIS SALTA",
+  "chain": { "$oid": "3b0ed8fa297fb07209439589" }, // ID de la cadena "Grido"
+  "platforms": [
+    {
+      "isActive": true,
+      "platform": { "$oid": "2fa749ada05d3303fb00322b" },
+      "branchReference": "5161",
+      "rules": { // <-- REGLAS DE NEGOCIO AÑADIDAS AQUÍ
+        "autoAccept": true,
+        "preparationTime": 15
+      }
+    },
+    {
+      "isActive": true,
+      "platform": { "$oid": "c602426305e1e834cb7fcedc" },
+      "branchReference": "5161",
+      "rules": { // <-- REGLAS DE NEGOCIO AÑADIDAS AQUÍ
+        "autoAccept": false,
+        "preparationTime": 20
+      }
+    }
+    // ... más plataformas con sus reglas ...
+  ]
+}
+        </code></pre>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Scripts de Prism.js y para el botón de copiar -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.copy-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const btn = event.currentTarget;
+          const pre = btn.nextElementSibling;
+          if (pre && pre.tagName === 'PRE') {
+            const code = pre.querySelector('code');
+            const textToCopy = code.innerText;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              const originalText = btn.innerText;
+              btn.innerText = 'Copiado!';
+              setTimeout(() => {
+                btn.innerText = originalText;
+              }, 2000);
+            }).catch(err => {
+              console.error('Error al copiar el texto: ', err);
+            });
+          }
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>
