@@ -109,11 +109,11 @@
     </div>
 
     <h2>1. Objetivo de este Documento</h2>
-    <p>Este documento describe el formato de datos final que los sistemas consumidores recibirán de SmartPedidos. Se detalla la estructura para <strong>Canjes de Puntos</strong>, promociones tradicionales y productos regulares.</p>
+    <p>Este documento describe el formato de datos final que los sistemas consumidores recibirán de SmartPedidos. Se detalla la estructura para <strong>CanjeApp</strong>.</p>
     
 
     <h2>2. Ejemplo Completo de Pedido Mixto</h2>
-    <p>A continuación, un pedido completo con un canje y un producto regular, y cómo se entregará al sistema consumidor final bajo la <strong>nueva lógica</strong>.</p>
+    <p>A continuación, un pedido completo con un canje.</p>
 
     <h3>2.1. Pedido Recibido por SmartPedidos (Entrada de Referencia)</h3>
     <pre><code class="language-json">{
@@ -137,13 +137,6 @@
           "sku": "64",                       //Sku del Item del Canje
           "notes": "Chocolate, Vainilla" }
         ]
-      },
-      {
-        "name": "1/4 Kilo de Helado",       //Prodcuto sin Canje
-        "sku": "66",
-        "canje": 0,                         // El ítem se marca como regular
-        "promotion": false,                 //No tiene promocion
-        "optionGroups": []
       }
     ]
   }
@@ -176,14 +169,6 @@
         "promo": 1,      // '1' identifica al item como Componente (Hijo).
         "groupId": 1,    // Pertenece al mismo grupo que su Padre.
         "canje": 0       // El hijo ya no lleva el flag de canje; se infiere de su Padre.
-      },
-      {
-        "description": "1/4 Kilo de Helado",
-        "sku": "66",
-        "price": 2500,
-        "promo": 0,      // '0' identifica a un producto regular.
-        "groupId": 0,    // '0' significa que no pertenece a ningún grupo.
-        "canje": 0       // '0' confirma que no es un canje.
       }
     ]
   }
