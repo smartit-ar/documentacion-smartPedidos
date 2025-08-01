@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especificación Técnica – Formato de Canje de Puntos</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f7f8fa;
+            color: #333;
+            margin: 0;
+            padding: 2em;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 2em 3em;
+        }
+
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 2em;
+            padding-bottom: 1em;
+        }
+
+        .doc-header h1 {
+            font-size: 2em;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-top: 2em;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: #34495e;
+        }
+        
+        h3 {
+            font-size: 1.2em;
+            margin-top: 2em;
+            color: #34495e;
+            border-bottom-style: dashed;
+            border-bottom-width: 1px;
+            padding-bottom: 5px;
+        }
+
+        code {
+            font-family: 'Source Code Pro', monospace;
+            background-color: #ecf0f1;
+            color: #c0392b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 1.5em;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: 0.9em;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 0.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: 700;
+        }
+        
+        .footer-logo {
+            text-align: center;
+            margin-top: 3em;
+            padding-top: 1em;
+            border-top: 1px solid #eee;
+            font-family: 'Source Code Pro', monospace;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="doc-header">
+        <h1>Especificación Técnica Para PediGrido e I+Diot - SmartPedidos – Formato de Canje de Puntos - CanjeApp</h1>
+    </div>
+
+    <h2>1. Objetivo</h2>
+    <p>Integrar el sistema de canje de puntos de ClubGrido con la plataforma SmartPedidos. El objetivo es garantizar que los pedidos con canje, originados en PediGrido e I+Diot, contengan los atributos necesarios para ser procesados correctamente y que esta información se transmita de forma transparente hacia SmartLoyalty.</p>
+
+    <h2>2. Alcances y Responsabilidades</h2>
+    <ul>
+        <li><strong>SmartPedidos</strong> funcionará como un <strong>puente de transmisión</strong> de información, traspasando los datos del pedido a los sistemas correspondientes.</li>
+        <li><strong>SmartLoyalty</strong> se encargará de toda la <strong>lógica de negocio</strong> del canje (validación de saldo, aplicación de beneficios, etc.).</li>
+        <li>Es responsabilidad de <strong>PediGrido e I+Diot</strong> construir y enviar la estructura del pedido (<code>order</code>) conforme a esta especificación.</li>
+    </ul>
+
+    <h2>3. Especificación del Payload <code>order</code></h2>
+    <p>El payload se compone de la información del cliente (<code>user</code>) y el detalle de los ítems (<code>details</code>).</p>
+
+    <h3>3.1. Atributos de Cliente (<code>order.user</code>)</h3>
+    <table>
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Obligatorio</th><th>Descripción</th></tr></thead>
+        <tbody>
+            <tr><td><code>dni</code></td><td>String</td><td>Si <code>contieneCanje</code> es <code>true</code></td><td>Documento/RUC del cliente.</td></tr>
+            <tr><td><code>tipoIdentificacion</code></td><td>String</td><td>Si <code>contieneCanje</code> es <code>true</code></td><td>Tipo de documento (ej. "DNI", "RUC").</td></tr>
+            <tr><td><code>numeroTarjetaLoyalty</code></td><td>String</td><td>Si <code>contieneCanje</code> es <code>true</code></td><td>Número de tarjeta del programa de lealtad.</td></tr>
+            <tr><td><code>contieneCanje</code></td><td>Boolean</td><td>Sí</td><td>Debe ser <code>true</code> si el pedido incluye un canje.</td></tr>
+            <tr><td><code>puntosCanjeados</code></td><td>Number</td><td>Si <code>contieneCanje</code> es <code>true</code></td><td>Cantidad total de puntos utilizados.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>3.2. Estructura de Ítems (<code>order.details</code>)</h3>
+    <p>Cuando un ítem es un canje, debe seguir una estructura anidada que separa el canje lógico de los productos físicos que descuentan stock.</p>
+    <pre><code>"details": [
+  {
+    "id": 0,
+    "unitPrice": 5000,
+    "quantity": 1,
+    "name": "50% Descuento en Kilo por 3000 Puntos",
+    "sku": "1641",
+    "notes": null,
+    "canje": 1,            // Flag numérico para indicar que ES un canje
+    "promotion": false,    // Flag booleano para indicar que NO es una promoción
+    "optionGroups": [
+      {
+        "id": 91,
+        "name": "Kilo de Helado",
+        "sku": "64",
+        "unitPrice": 0,
+        "notes": "Chocolate, Limón, Frutilla, Vainilla"
+      }
+    ]
+  }
+]</code></pre>
+
+    <h4>Descripción de Campos <code>details</code> (Nivel Superior del Ítem)</h4>
+    <table>
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Obligatorio</th><th>Descripción</th></tr></thead>
+        <tbody>
+            <tr><td><code>id</code></td><td>Number</td><td>Sí</td><td>Identificador secuencial interno de la línea.</td></tr>
+            <tr><td><code>unitPrice</code></td><td>Number</td><td>Sí</td><td>Precio final por unidad del Canje.</td></tr>
+            <tr><td><code>quantity</code></td><td>Number</td><td>Sí</td><td>Cantidad de ítems. Para canjes, <strong>el valor siempre debe ser 1</strong>.</td></tr>
+            <tr><td><code>name</code></td><td>String</td><td>Sí</td><td>Descripción comercial. Ej: "50% Descuento en Kilo por 3000 Puntos".</td></tr>
+            <tr><td><code>sku</code></td><td>String</td><td>Sí</td><td>SKU <strong>del canje</strong> del ítem (no descuenta stock).</td></tr>
+            <tr><td><code>notes</code></td><td>String</td><td>No</td><td>Observaciones generales.</td></tr>
+            <tr><td><code>canje</code></td><td>Number</td><td>Sí</td><td>Flag numérico. <strong>Valor <code>1</code> indica que es un canje</strong>; <code>0</code> que no lo es.</td></tr>
+            <tr><td><code>promotion</code></td><td>Boolean</td><td>Sí</td><td>Flag booleano. <strong>Debe ser <code>false</code> si el campo <code>canje</code> es <code>1</code></strong>.</td></tr>
+            <tr><td><code>optionGroups</code></td><td>Array</td><td>Sí</td><td>Lista de productos reales que componen el ítem y descuentan stock. Requerido para canjes.</td></tr>
+        </tbody>
+    </table>
+
+    <h4>Estructura de <code>OptionGroup</code> (Productos Físicos)</h4>
+    <table>
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Obligatorio</th><th>Descripción</th></tr></thead>
+        <tbody>
+            <tr><td><code>id</code></td><td>Number</td><td>Sí</td><td>ID del grupo de opciones.</td></tr>
+            <tr><td><code>name</code></td><td>String</td><td>Sí</td><td>Nombre descriptivo del producto físico. Ej: "Kilo de Helado".</td></tr>
+            <tr><td><code>sku</code></td><td>String</td><td>Sí</td><td>SKU <strong>real</strong> del producto que descuenta stock. Ej: "64".</td></tr>
+            <tr><td><code>unitPrice</code></td><td>Number</td><td>Sí</td><td>Debe ser <code>0</code> para ítems dentro de un canje.</td></tr>
+            <tr><td><code>notes</code></td><td>String</td><td>Sí</td><td>Detalle específico del producto (sabores, variantes, etc.).</td></tr>
+        </tbody>
+    </table>
+
+    <h2>4. Reglas de Negocio Clave</h2>
+    <ol>
+        <li><strong>Identificación de Canje:</strong> Un pedido contiene un canje si <code>order.user.contieneCanje</code> es <code>true</code> Y existe al menos un ítem en <code>details</code> con <code>canje: 1</code>.</li>
+        <li><strong>Exclusión Mutua Canje/Promoción:</strong> Si un ítem es un canje (<code>canje: 1</code>), su campo <code>promotion</code> <strong>obligatoriamente debe ser <code>false</code></strong>.</li>
+        <li><strong>SKU Lógico vs. SKU Real:</strong> El SKU en la cabecera (<code>details.sku</code>) es un identificador lógico del canje y <strong>no descuenta stock</strong>. El stock se descuenta únicamente de los SKU especificados dentro de <code>optionGroups</code>.</li>
+        <li><strong>Cantidad Fija en 1 para Canjes:</strong> El campo <code>quantity</code> en un ítem de canje siempre debe ser <code>1</code>. Si un cliente adquiere dos canjes, se deben enviar dos objetos separados en el array <code>details</code>.</li>
+        <li><strong>Precio Cero en <code>optionGroups</code>:</strong> El campo <code>unitPrice</code> dentro de cada objeto de <code>optionGroups</code> de un canje debe ser <code>0</code>.</li>
+        <li><strong>Notas Específicas:</strong> Los detalles de los productos, como los sabores, deben ir en el campo <code>notes</code> del <code>optionGroup</code> correspondiente.</li>
+    </ol>
+    
+    <h2>5. Ejemplo Completo de Pedido con Canje</h2>
+    <p>A continuación, un ejemplo de un pedido completo que incluye un canje de un kilo de helado y la compra de otro producto regular.</p>
+    <pre><code>{
+  "order": {
+    "user": {
+      "dni": "39690194",
+      "tipoIdentificacion": "DNI",
+      "numeroTarjetaLoyalty": "1234567890",
+      "contieneCanje": true,
+      "puntosCanjeados": 3000
+    },
+    "details": [
+      {
+        "id": 0,
+        "unitPrice": 5000,
+        "quantity": 1,
+        "name": "50% Descuento en Kilo por 3000 Puntos",
+        "sku": "1641",
+        "notes": "Aplicar descuento sobre el kilo.",
+        "canje": 1,
+        "promotion": false,
+        "optionGroups": [
+          {
+            "id": 91,
+            "name": "Kilo de Helado",
+            "sku": "64",
+            "unitPrice": 0,
+            "notes": "Chocolate, Dulce de Leche, Frutilla, Vainilla"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+    <div class="footer-logo">
+        { smart Pedidos }
+    </div>
+</div>
+
+</body>
+</html>
