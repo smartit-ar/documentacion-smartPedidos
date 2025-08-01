@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especificación Técnica: Formato de Salida para Pedidos con Canje</title>
+    
+    <!-- Hoja de estilos de Prism.js para el tema de colores -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f7f8fa;
+            color: #333;
+            margin: 0;
+            padding: 2em;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 2em 3em;
+        }
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 2em;
+            padding-bottom: 1em;
+        }
+        .doc-header h1 {
+            font-size: 2em;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .doc-header h1 .subtitle {
+            display: block;
+            font-size: 0.6em;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-top: 2em;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: #34495e;
+        }
+        h3 {
+            font-size: 1.2em;
+            margin-top: 2em;
+            color: #34495e;
+            border-bottom-style: dashed;
+            border-bottom-width: 1px;
+            padding-bottom: 5px;
+        }
+        pre {
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        code {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9em;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: 700;
+        }
+        .info-box {
+            background-color: #fffbe6;
+            border-left: 5px solid #f0ad4e;
+            padding: 15px;
+            margin: 1.5em 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="doc-header">
+        <h1>Especificación Técnica: Formato de Salida para Pedidos con Canje
+            <span class="subtitle">Documento para Consumidores de la API de SmartPedidos</span>
+        </h1>
+    </div>
+
+    <h2>1. Objetivo de este Documento</h2>
+    <p>Este documento describe el formato de datos final que los sistemas consumidores recibirán de SmartPedidos. Se detalla la estructura para <strong>Canjes de Puntos</strong>, promociones tradicionales y productos regulares.</p>
+    
+
+    <h2>2. Ejemplo Completo de Pedido Mixto</h2>
+    <p>A continuación, un pedido completo con un canje y un producto regular, y cómo se entregará al sistema consumidor final bajo la <strong>nueva lógica</strong>.</p>
+
+    <h3>2.1. Pedido Recibido por SmartPedidos (Entrada de Referencia)</h3>
+    <pre><code class="language-json">{
+  "order": {
+    "user": {
+      "dni": "39690194",
+      "tipoIdentificacion": "DNI",
+      "numeroTarjetaLoyalty": "1234567890",
+      "contieneCanje": true,
+      "puntosCanjeados": 3000
+    },
+    "details": [
+      {
+        "name": "50% Descuento en Kilo por 3000 Puntos",
+        "sku": "1641",
+        "canje": 1,                          // Cabecera del item con canje
+        "promotion": false,
+        "optionGroups": [
+          { 
+          "name": "Kilo de Helado", 
+          "sku": "64",                       //Sku del Item del Canje
+          "notes": "Chocolate, Vainilla" }
+        ]
+      },
+      {
+        "name": "1/4 Kilo de Helado",       //Prodcuto sin Canje
+        "sku": "66",
+        "canje": 0,                         // El ítem se marca como regular
+        "promotion": false,                 //No tiene promocion
+        "optionGroups": []
+      }
+    ]
+  }
+}</code></pre>
+
+    <h3>2.2. Pedido Entregado por SmartPedidos (Salida Transformada News)</h3>
+    <pre><code class="language-json">{
+  "order": {
+    "customer": {
+      "dni": "39690194",
+      "tipoIdentificacion": "DNI",
+      "numeroTarjetaLoyalty": "1234567890",
+      "contieneCanje": true,
+      "puntosCanjeados": 3000
+    },
+    "details": [
+      {
+        "description": "50% Descuento en Kilo por 3000 Puntos",
+        "sku": "1641",
+        "price": 5000,
+        "promo": 2,      // '2' identifica al item como Contenedor (Padre) de un grupo.
+        "groupId": 1,    // '1' es el ID de este grupo de transacción.
+        "canje": 1       // '1' en el Padre significa: "Todo este grupo (groupId=1) es un CANJE".
+      },
+      {
+        "description": "Kilo de Helado",
+        "sku": "64",
+        "price": 0,
+        "optionalText": "Chocolate, Vainilla",
+        "promo": 1,      // '1' identifica al item como Componente (Hijo).
+        "groupId": 1,    // Pertenece al mismo grupo que su Padre.
+        "canje": 0       // El hijo ya no lleva el flag de canje; se infiere de su Padre.
+      },
+      {
+        "description": "1/4 Kilo de Helado",
+        "sku": "66",
+        "price": 2500,
+        "promo": 0,      // '0' identifica a un producto regular.
+        "groupId": 0,    // '0' significa que no pertenece a ningún grupo.
+        "canje": 0       // '0' confirma que no es un canje.
+      }
+    ]
+  }
+}</code></pre>
+</div>
+
+<!-- Scripts de Prism.js para resaltado de sintaxis -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+</body>
+</html>
