@@ -160,16 +160,16 @@
     "id": 0,
     "unitPrice": 5000,
     "quantity": 1,
-    "name": "50% Descuento en Kilo por 3000 Puntos",
-    "sku": "1641",
+    "name": "Canje 1 Kilo - 5000 puntos + 50%",
+    "sku": "12931",            //SKU del Canje 
     "notes": null,
-    "canje": 1,            // Flag numérico para indicar que ES un canje
-    "promotion": false,    // Flag booleano para indicar que NO es una promoción
+    "canje": 1,               // Flag Numerico para indicar que ES un canje
+    "promotion": false,       // Flag booleano para indicar que NO es una promoción
     "optionGroups": [
       {
         "id": 91,
         "name": "Kilo de Helado",
-        "sku": "64",
+        "sku": "64",              
         "unitPrice": 0,
         "notes": "Chocolate, Limón, Frutilla, Vainilla"
       }
@@ -184,11 +184,11 @@
             <tr><td><code>id</code></td><td>Number</td><td>Sí</td><td>Identificador secuencial interno de la línea.</td></tr>
             <tr><td><code>unitPrice</code></td><td>Number</td><td>Sí</td><td>Precio final por unidad del Canje.</td></tr>
             <tr><td><code>quantity</code></td><td>Number</td><td>Sí</td><td>Cantidad de ítems. Para canjes, <strong>el valor siempre debe ser 1</strong>.</td></tr>
-            <tr><td><code>name</code></td><td>String</td><td>Sí</td><td>Descripción comercial. Ej: "50% Descuento en Kilo por 3000 Puntos".</td></tr>
-            <tr><td><code>sku</code></td><td>String</td><td>Sí</td><td>SKU <strong>del canje</strong> del ítem (no descuenta stock).</td></tr>
+            <tr><td><code>name</code></td><td>String</td><td>Sí</td><td>Descripción comercial. Ej: "Canje 1 Kilo - 5000 puntos + 50%".</td></tr>
+            <tr><td><code>sku</code></td><td>String</td><td>Sí</td><td>SKU <strong>DEL CANJE</strong> (no descuenta stock).</td></tr>
             <tr><td><code>notes</code></td><td>String</td><td>No</td><td>Observaciones generales.</td></tr>
-            <tr><td><code>canje</code></td><td>Number</td><td>Sí</td><td>Flag numérico. <strong>Valor <code>1</code> indica que es un canje</strong>; <code>0</code> que no lo es.</td></tr>
-            <tr><td><code>promotion</code></td><td>Boolean</td><td>Sí</td><td>Flag booleano. <strong>Debe ser <code>false</code> si el campo <code>canje</code> es <code>1</code></strong>.</td></tr>
+            <tr><td><code>canje</code></td><td>Numeric</td><td>Sí</td><td>Flag Numerico <strong>Si es <code>1</code> indica que es un canje</strong>; <code>0</code> que no lo es.</td></tr>
+            <tr><td><code>promotion</code></td><td>Boolean</td><td>Sí</td><td>Flag booleano. <strong>Debe ser <code>false</code> si el item contiene <code>canje</code>.</td></tr>
             <tr><td><code>optionGroups</code></td><td>Array</td><td>Sí</td><td>Lista de productos reales que componen el ítem y descuentan stock. Requerido para canjes.</td></tr>
         </tbody>
     </table>
@@ -224,16 +224,17 @@
       "tipoIdentificacion": "DNI",
       "numeroTarjetaLoyalty": "1234567890",
       "contieneCanje": true,
-      "puntosCanjeados": 3000
+      "puntosCanjeados": 5000
     },
     "details": [
+                           //PEDIDO CON CANJE
       {
         "id": 0,
         "unitPrice": 5000,
         "quantity": 1,
-        "name": "50% Descuento en Kilo por 3000 Puntos",
-        "sku": "1641",
-        "notes": "Aplicar descuento sobre el kilo.",
+        "name": "Canje 1 Kilo - 5000 puntos + 50%",
+        "sku": "12931",
+        "notes": "",
         "canje": 1,
         "promotion": false,
         "optionGroups": [
@@ -246,6 +247,45 @@
           }
         ]
       }
+                          //PEDIDO SIN PROMOCION NI CANJE
+      {
+        "id": 0,
+        "unitPrice": 10500,
+        "quantity": 1,
+        "name": "Helado 1 Kg",
+        "sku": "64",
+        "notes": "Capuccino Granizado Granizado Marroc Grido Super Gridito ",
+        "promotion": false,
+        "canje": 0,
+        "optionGroups": null
+       }
+                           //PEDIDO CON PROMOCION
+      {
+       "id": 4521388,
+       "unitPrice": 17000,
+       "quantity": 1,
+       "name": "2 Kilos por $17000 ",
+       "sku": "12761",
+       "notes": null,
+       "promotion": true,
+       "canje": 0,
+       "optionGroups": [
+        {
+          "id": 93,
+          "name": "Sabores Helado 1 Kg",
+          "sku": "64",
+          "unitPrice": 0,
+          "notes": "Sambayón Marroc Grido Choco Blanco Oreo Flan Dulce
+        },
+        {
+          "id": 93,
+          "name": "Sabores Helado 1 Kg",
+          "sku": "64",
+          "unitPrice": 0,
+          "notes": ""
+        }
+      ]
+    }
     ]
   }
 }</code></pre>
