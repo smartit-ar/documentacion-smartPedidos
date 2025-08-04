@@ -109,11 +109,11 @@
     </div>
 
     <h2>1. Objetivo de este Documento</h2>
-    <p>Este documento describe el formato de datos final que los sistemas consumidores recibirán de SmartPedidos. Se detalla la estructura para <strong>CanjeApp</strong>.</p>
+    <p>Este documento ejemplifica y describe el formato de datos final que los sistemas consumidores recibirán de SmartPedidos. Se detalla la estructura para <strong>CanjeApp</strong>.</p>
     
 
-    <h2>2. Ejemplo Completo de Pedido Mixto</h2>
-    <p>A continuación, un pedido completo con un canje.</p>
+    <h2>2. Ejemplo Completo de Pedido con Canje</h2>
+    <p>A continuación, un pedido completo con un canje. <strong>El formato es Similar a una PROMOCION pero con el agregado del atributo <code>canje: 1</code></strong></p>
 
     <h3>2.1. Pedido Recibido por SmartPedidos (Entrada de Referencia)</h3>
     <pre><code class="language-json">{
@@ -168,7 +168,7 @@
         "optionalText": "Chocolate, Vainilla",
         "promo": 1,      // '1' identifica al item como Componente (Hijo).
         "groupId": 1,    // Pertenece al mismo grupo que su Padre.
-        "canje": 0       // El hijo ya no lleva el flag de canje; se infiere de su Padre.
+        "canje": 1       // El hijo lleva el flag de canje; se infiere de su Padre.
       }
     ]
   }
