@@ -290,6 +290,16 @@
   }
 }</code></pre>
 
+
+     <h2>6. Motivo de Rechazo Específico para CanjeApp</h2>
+    <p>En el caso de que un canje sea rechazado por falta de puntos, SmartPedidos informará el rechazo utilizando un nuevo motivo específico. Es necesario que PediGrido e I+Diot estén preparados para recibir y mapear este nuevo motivo de rechazo en sus plataformas.</p>
+    <p>A continuación, se detalla el Id del nuevo objeto que se enviará en la notificación de rechazo:</p>
+    <pre><code>{
+  "id": 400,
+  "name": "Falta de puntos CanjeApp",
+  "descriptionES": "Falta de puntos CanjeApp",
+}</code></pre>
+
     <div class="footer-logo">
         { smart Pedidos }
     </div>
