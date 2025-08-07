@@ -69,7 +69,7 @@
 
   <div class="container">
     <header class="main-header">
-      <h1>>Documentación BackEnd: Reglas de Negocio Multitenan</h1>
+      <h1>Documentación BackEnd: Reglas de Negocio Multitenant</h1>
     </header>
 
     <nav class="toc">
@@ -89,20 +89,20 @@
       <p>Se establece una jerarquía de reglas de dos niveles:</p>
       <ul>
           <li><strong>Nivel <code>chain</code> (Fuente de Verdad Principal):</strong> La colección <code>chains</code> contendrá un conjunto de reglas por defecto para cada plataforma con la que opera.</li>
-          <li><strong>Nivel Sucursal (Excepciones):</strong> La colección <code>branches</code> podrá, de manera opcional, definir su propio conjunto de reglas para una plataforma específica, ignorando la configuración de la cadena para ese caso.</li>
+          <li><strong>Nivel <code>branch</code> (Excepciones):</strong> La colección <code>branches</code> podrá, de manera opcional, definir su propio conjunto de reglas para una plataforma específica, ignorando la configuración de la cadena para ese caso.</li>
       </ul>
       <p>Cuando el sistema necesite una regla, seguirá el siguiente flujo lógico:</p>
       <ul class="flow">
-          <li><strong>¿Existe una regla específica en la sucursal?</strong> → <strong>Sí</strong> → Usar la regla de la sucursal.</li>
-          <li><strong>¿Existe una regla específica en la sucursal?</strong> → <strong>No</strong> → Usar la regla por defecto de la cadena.</li>
+          <li><strong>¿Existe una regla específica en la <code>branch</code>?</strong> → <strong>Sí</strong> → Usar la regla de la <code>branch</code>.</li>
+          <li><strong>¿Existe una regla específica en la <code>branch</code>?</strong> → <strong>No</strong> → Usar la regla por defecto de la <code>chain</code>.</li>
       </ul>
     </section>
 
     <section id="models">
       <h2>2. Modelos de Datos y Estructura en MongoDB</h2>
       
-      <h3>2.1. Modelo <code>chain</code> Actualizado</h3>
-      <p>Se añade el array <code>platformRules</code> al esquema <code>chainSchema</code>. Cada elemento de este array define un "contrato" de reglas para una plataforma específica a nivel de toda la cadena.</p>
+      <h3>2.1. Modelo <code>chain</code> </h3>
+      <p>Se añade el array <code>platformRules</code> al esquema <code>chainSchema</code>. Cada elemento de este array define una regla de negocio.</p>
       <div class="file-block">
         <div class="file-block-header">api/src/models/chain.js</div>
         <pre><code class="language-javascript">
@@ -159,8 +159,8 @@ module.exports = mongoose.model('chain', chainSchema);
         </code></pre>
       </div>
 
-      <h3>2.2. Modelo <code>branch</code> Actualizado</h3>
-      <p>Dentro del array <code>platforms</code> de la sucursal, se añade un campo opcional <code>rules</code>. La presencia de este campo indica una excepción a la regla de la cadena.</p>
+      <h3>2.2. Modelo <code>branch</code> </h3>
+      <p>Dentro del array <code>platforms</code> de la sucursal, se añade un campo opcional <code>rules</code>. La presencia de este campo indica una excepción a la regla de la <code>chain</code>.</p>
       <div class="file-block">
         <div class="file-block-header">api/src/models/branch.js</div>
         <pre><code class="language-javascript">
