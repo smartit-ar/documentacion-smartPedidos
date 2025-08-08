@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demostración MULTITENANT FrontEnd</title>
+    <style>
+        /* --- FUENTES Y ESTILOS GENERALES --- */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --primary-color: #2F80ED;
+            --light-primary-color: #eaf3ff;
+            --text-color: #333;
+            --label-color: #6c757d;
+            --border-color: #dee2e6;
+            --background-color: #f8f9fa;
+            --white-color: #ffffff;
+            --sidebar-width: 240px;
+            --card-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden; /* Evitar scroll horizontal */
+        }
+
+        /* --- Contenedor Principal de la Demostración --- */
+        .demo-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: var(--white-color);
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .explanation {
+            background-color: var(--light-primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-color);
+        }
+
+        .explanation h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .screen-simulation {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            margin-top: 20px;
+            height: 700px; /* Altura fija para simular pantalla */
+            position: relative; /* Para el scroll */
+        }
+
+        .screen-content-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow-y: auto; /* Permite scroll interno */
+            background-color: var(--background-color);
+        }
+
+        /* --- Estilos compartidos de las simulaciones de UI (copiados de los ejemplos) --- */
+        .container-ui { /* Renombrado para evitar conflicto con .container general */
+            display: flex;
+            width: 100%;
+            height: 100%; /* Para que el aside y main ocupen 100% de la envoltura */
+        }
+
+        .sidebar-ui { /* Renombrado */
+            width: 240px;
+            background-color: var(--white-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-ui .logo-ui { /* Renombrado */
+            padding: 0 20px;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .sidebar-ui .logo-ui img {
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        .sidebar-ui nav ul {
+            list-style: none;
+        }
+
+        .sidebar-ui nav .nav-section-title-ui { /* Renombrado */
+            font-size: 0.75rem;
+            color: var(--label-color);
+            text-transform: uppercase;
+            padding: 10px 20px;
+            font-weight: 700;
+        }
+
+        .sidebar-ui nav li a {
+            display: block;
+            padding: 12px 20px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-ui nav li a:hover {
+            background-color: var(--background-color);
+        }
+
+        .sidebar-ui nav li.active a {
+            background-color: var(--light-primary-color);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        .main-content-ui { /* Renombrado */
+            flex-grow: 1;
+            padding: 20px 30px;
+            overflow-y: auto;
+        }
+
+        .main-header-ui { /* Renombrado */
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-right: 10px;
+        }
+
+        .main-header-ui .user-info-ui { /* Renombrado */
+            font-size: 0.9rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .page-title-ui { /* Renombrado */
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: var(--text-color);
+        }
+
+        .page-title-ui .back-button-ui { /* Renombrado */
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .card-ui { /* Renombrado */
+            background-color: var(--white-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .card-title-ui { /* Renombrado */
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .form-grid-ui { /* Renombrado */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .form-single-column-ui { /* Renombrado */
+            display: block;
+        }
+
+        .form-group-ui { /* Renombrado */
+            margin-bottom: 15px;
+        }
+
+        .form-group-ui label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .form-group-ui label.required::after {
+            content: '*';
+            color: red;
+            margin-left: 3px;
+        }
+
+        .form-group-ui input[type="text"],
+        .form-group-ui input[type="number"],
+        .form-group-ui input[type="password"],
+        .form-group-ui input[type="date"],
+        .form-group-ui textarea,
+        .form-group-ui select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+
+        .form-group-ui textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .form-group-ui input[readonly],
+        .form-group-ui select[disabled] {
+            background-color: #e9ecef;
+        }
+        
+        .form-group-checkbox-ui { /* Renombrado */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Avatar Section */
+        .avatar-section-ui { /* Renombrado */
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .avatar-preview-ui img { /* Renombrado */
+            width: 100px;
+            height: 100px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        .avatar-actions-ui { /* Renombrado */
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .btn-ui { /* Renombrado */
+            padding: 8px 15px;
+            border: 1px solid;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-ui-primary { /* Renombrado */
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .btn-ui-danger { /* Renombrado */
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        .btn-ui-secondary { /* Renombrado */
+            background-color: #6c757d;
+            color: white;
+            border-color: #6c757d;
+        }
+        .btn-ui-success { /* Renombrado */
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .btn-ui-warning { /* Renombrado */
+            background-color: #ffc107;
+            color: #212529;
+            border-color: #ffc107;
+        }
+
+
+        /* --- BOTONES DE ACCIÓN INFERIORES --- */
+        .form-actions-ui { /* Renombrado */
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* --- TABLA DE CONFIGURACIÓN --- */
+        .config-table-ui, .business-rules-table-ui { /* Renombrado */
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .config-table-ui th, .config-table-ui td,
+        .business-rules-table-ui th, .business-rules-table-ui td { /* Renombrado */
+            padding: 12px 10px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .config-table-ui th, .business-rules-table-ui th { /* Renombrado */
+            font-size: 0.8rem;
+            color: var(--label-color);
+            text-transform: uppercase;
+            font-weight: 700;
+            background-color: #f2f2f2;
+        }
+        
+        .config-table-ui td:nth-child(2),
+        .config-table-ui td:nth-child(3),
+        .business-rules-table-ui td:nth-child(2),
+        .business-rules-table-ui td:nth-child(3) {
+            text-align: center;
+        }
+
+        .config-table-ui td input[type="checkbox"],
+        .business-rules-table-ui td input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.15em;
+            height: 1.15em;
+            border: 0.15em solid var(--border-color);
+            border-radius: 0.15em;
+            transform: translateY(-0.075em);
+            display: grid;
+            place-content: center;
+            vertical-align: middle;
+        }
+        
+        .config-table-ui td input[type="checkbox"]::before,
+        .business-rules-table-ui td input[type="checkbox"]::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em var(--primary-color);
+            transform-origin: bottom left;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+
+        .config-table-ui td input[type="checkbox"]:checked::before,
+        .business-rules-table-ui td input[type="checkbox"]:checked::before {
+            transform: scale(1);
+        }
+
+        .config-table-ui td select,
+        .business-rules-table-ui td select {
+            padding: 8px 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 80px;
+        }
+        
+        /* Estilos de botones de pie de página - simulando Angular */
+        .footer-buttons-ui { /* Renombrado */
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        .footer-buttons-ui .btn-ui {
+            margin-left: 10px;
+        }
+
+        /* --- Tabs / Carrusel --- */
+        .mat-tab-group-ui { /* Renombrado */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mat-tab-header-ui { /* Renombrado */
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .mat-tab-label-ui { /* Renombrado */
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--label-color);
+            border-bottom: 2px solid transparent;
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+
+        .mat-tab-label-ui:hover {
+            color: var(--primary-color);
+        }
+
+        .mat-tab-label-ui.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .mat-tab-label-ui.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            color: var(--label-color);
+        }
+
+        .mat-tab-body-ui { /* Renombrado */
+            display: none;
+        }
+
+        .mat-tab-body-ui.active {
+            display: block;
+        }
+
+         .main-header { text-align: center; margin-bottom: 2em; padding-bottom: 2em; border-bottom: 1px solid var(--border-color); }
+        .main-header h1 { margin: 0 0 0.1em 0; font-size: 2.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="demo-container">
+          <header class="main-header">
+      <h1>Documentación FrontEnd: Reglas de Negocio Multitenant</h1>
+    </header>
+
+        <!-- Ejemplo 1: Alta Cadena con Configuración por Plataforma -->
+
+          
+        <div class="explanation">
+            <h3>Modificacion Vista 1: Configuración en Cadenas</h3>
+            <p>Este ejemplo simula la vista de Edit en Cadena (`/pages/management/chains/new` o `/edit/:id`). Muestra los campos básicos de la cadena (nombre, dominio, contacto, etc.) y la gestión de su logotipo.</p>
+            <p>El Agregado es **"Configuración por Plataforma"** en la parte inferior. Esta sección presenta una tabla que muestra cómo se visualizarían y configurarían las reglas de negocio (autoaceptación y tiempo de preparación) para diferentes plataformas (Pedidos Ya, Rappi, Uber Eats) asociadas a esta cadena.</p>
+        </div>
+
+        <div class="screen-simulation">
+            <div class="screen-content-wrapper">
+                <div class="container-ui">
+                    <!-- BARRA LATERAL (SIMULACIÓN) -->
+                    <aside class="sidebar-ui">
+                        <div class="logo-ui">
+                            <img src="https://via.placeholder.com/60x60?text=SF" alt="Smartfran Logo" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 5px;">
+                            Smartfran <span style="font-size: 0.8em;">V5.4.0</span>
+                        </div>
+                        <nav>
+                            <ul>
+                                <li class="nav-section-title-ui">Gestión</li>
+                                <li><a href="#">Usuarios</a></li>
+                                <li><a href="#">Plataformas</a></li>
+                                <li><a href="#">Courier</a></li>
+                                <li class="active"><a href="#">Cadenas</a></li>
+                                <li><a href="#">Clientes</a></li>
+                                <li><a href="#">Sucursales</a></li>
+                                <li><a href="#">Regiones</a></li>
+                                <li><a href="#">Países</a></li>
+
+                                <li class="nav-section-title-ui">Dashboard</li>
+                                <li><a href="#">Status</a></li>
+                                <li><a href="#">Reporting</a></li>
+                                <li><a href="#">Releases</a></li>
+
+                                <li class="nav-section-title-ui">Swagger</li>
+                                <li><a href="#">Platform</a></li>
+                                <li><a href="#">Concentrador</a></li>
+                                <li class="nav-section-title-ui">Monitorización</li>
+                                <li><a href="#">DeadLetter</a></li>
+                            </ul>
+                        </nav>
+                    </aside>
+
+                    <!-- CONTENIDO PRINCIPAL -->
+                    <main class="main-content-ui">
+                        <header class="main-header-ui">
+                            <div class="user-info-ui">Hola Matias!</div>
+                        </header>
+
+                        <h1 class="page-title-ui">
+                            <a href="#" class="back-button-ui">←</a>
+                            Cadenas
+                        </h1>
+
+                        <div class="card-ui">
+                            <h5 class="card-title-ui" style="margin-bottom: 15px;">Alta Cadena</h5>
+                            <span style="font-size: 0.9rem; color: var(--label-color); margin-bottom: 20px; display: block;">(Los campos marcados con * son obligatorios)</span>
+                            
+                            <div class="form-single-column-ui">
+                                <div class="form-group-ui">
+                                    <label for="chain-name-ui" class="required">Cadena</label>
+                                    <input type="text" id="chain-name-ui" value="Grido">
+                                </div>
+                                <div class="form-group-ui">
+                                    <label for="domain-ui">Dominio</label>
+                                    <input type="text" id="domain-ui" value="www.grido.com.ar">
+                                </div>
+                                <div class="form-group-ui">
+                                    <label for="contact-ui">Contacto</label>
+                                    <input type="text" id="contact-ui" value="Francisco San Martin">
+                                </div>
+                                <div class="form-group-ui">
+                                    <label for="phone-ui">Teléfono</label>
+                                    <input type="text" id="phone-ui" value="5493517 554986">
+                                </div>
+                                <div class="form-group-ui">
+                                    <label for="address-ui">Domicilio</label>
+                                    <input type="text" id="address-ui" value="Esfironica S/N, Lote 20, Parque Industrial Ferreyra">
+                                </div>
+
+                                <div class="avatar-section-ui">
+                                    <div class="avatar-preview-ui">
+                                        <img src="https://via.placeholder.com/100x100?text=GRIDO+LOGO" alt="Logo Grido" id="chain-avatar-img">
+                                    </div>
+                                    <div class="avatar-actions-ui">
+                                        <button class="btn-ui btn-ui-primary" id="subir-foto-chain">Subir Foto</button>
+                                        <button class="btn-ui btn-ui-danger" id="eliminar-foto-chain">Eliminar Foto</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions-ui">
+                                <button class="btn-ui btn-ui-secondary">Cancelar</button>
+                                <button class="btn-ui btn-ui-primary">Guardar</button>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Configuración por Plataforma (ADICIÓN) -->
+                        <div class="card-ui">
+                            <h5 class="card-title-ui">Configuración por Plataforma</h5>
+                            <table class="config-table-ui">
+                                <thead>
+                                    <tr>
+                                        <th>Cadena/Regla</th>
+                                        <th style="text-align: center;">Autoaceptación</th>
+                                        <th style="text-align: center;">Tiempo de Preparación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>PEDIDOS YA</td>
+                                        <td><input type="checkbox" id="auto-pedidosya" checked></td>
+                                        <td>
+                                            <select id="time-pedidosya">
+                                                <option value="10">10'</option>
+                                                <option value="15" selected>15'</option>
+                                                <option value="20">20'</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>RAPPI</td>
+                                        <td><input type="checkbox" id="auto-rappi" checked></td>
+                                        <td>
+                                            <select id="time-rappi">
+                                                <option value="10">10'</option>
+                                                <option value="15" selected>15'</option>
+                                                <option value="20">20'</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>UBER EATS</td>
+                                        <td><input type="checkbox" id="auto-ubereats"></td>
+                                        <td>
+                                            <select id="time-ubereats">
+                                                <option value="20">20'</option>
+                                                <option value="25">25'</option>
+                                                <option value="30" selected>30'</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ejemplo 2: Alta Sucursal con Solapas (Tabs) -->
+        <div class="explanation">
+            <h3>Modificacion Vista 2: Gestión de Sucursal</h3>
+            <p>Este ejemplo simula la vista de Sucursales (`/pages/management/branches/new` o `/edit/:id`). Su característica principal es el agregado de la nueva solapa "Reglas de Negocio".</p>
+            <p>La nueva solapa "Reglas de Negocio" está integrada. Esta solapa presentaría una tabla de reglas de negocio para cada plataforma activa de la sucursal, similar al ejemplo anterior, pero contextualizada a la sucursal actual.</p>
+        </div>
+
+        <div class="screen-simulation">
+            <div class="screen-content-wrapper">
+                <div class="container-ui">
+                    <!-- BARRA LATERAL (SIMULACIÓN) -->
+                    <aside class="sidebar-ui">
+                        <div class="logo-ui">
+                            <img src="https://via.placeholder.com/60x60?text=SF" alt="Smartfran Logo" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 5px;">
+                            Smartfran <span style="font-size: 0.8em;">V5.4.0</span>
+                        </div>
+                        <nav>
+                            <ul>
+                                <li class="nav-section-title-ui">Gestión</li>
+                                <li><a href="#">Usuarios</a></li>
+                                <li><a href="#">Plataformas</a></li>
+                                <li><a href="#">Courier</a></li>
+                                <li><a href="#">Cadenas</a></li>
+                                <li><a href="#">Clientes</a></li>
+                                <li class="active"><a href="#" id="sidebar-branches">Sucursales</a></li>
+                                <li><a href="#">Regiones</a></li>
+                                <li><a href="#">Países</a></li>
+
+                                <li class="nav-section-title-ui">Dashboard</li>
+                                <li><a href="#">Status</a></li>
+                                <li><a href="#">Reporting</a></li>
+                                <li><a href="#">Releases</a></li>
+
+                                <li class="nav-section-title-ui">Swagger</li>
+                                <li><a href="#">Platform</a></li>
+                                <li><a href="#">Concentrador</a></li>
+                                <li class="nav-section-title-ui">Monitorización</li>
+                                <li><a href="#">DeadLetter</a></li>
+                            </ul>
+                        </nav>
+                    </aside>
+
+                    <!-- CONTENIDO PRINCIPAL -->
+                    <main class="main-content-ui">
+                        <header class="main-header-ui">
+                            <div class="user-info-ui">Hola Matias!</div>
+                        </header>
+
+                        <h1 class="page-title-ui">
+                            <a href="#" class="back-button-ui">←</a>
+                            Sucursales
+                        </h1>
+
+                        <!-- Simulacion de mat-tab-group -->
+                        <div class="mat-tab-group-ui">
+                            <div class="mat-tab-header-ui">
+                                <div class="mat-tab-label-ui active" data-tab="0" id="tab-sucursal">Sucursal</div>
+                                <div class="mat-tab-label-ui" data-tab="1" id="tab-software">Software</div>
+                                <div class="mat-tab-label-ui" data-tab="2" id="tab-plataformas">Plataformas</div>
+                                <div class="mat-tab-label-ui" data-tab="3" id="tab-courier">Courier</div>
+                                <div class="mat-tab-label-ui" data-tab="4" id="tab-reglas">Reglas de Negocio</div>
+                            </div>
+
+                            <!-- Contenido de las Solapas -->
+                            <div class="mat-tab-body-ui active" data-tab-content="0" id="content-sucursal">
+                                <div class="card-ui">
+                                    <h5 class="card-title-ui">Alta Sucursal</h5>
+                                    <span style="font-size: 0.9rem; color: var(--label-color); margin-bottom: 20px; display: block;">(Los campos marcados con * son obligatorios)</span>
+                                    
+                                    <div class="form-grid-ui">
+                                        <!-- Columna Izquierda -->
+                                        <div class="form-column">
+                                            <div class="form-group-ui">
+                                                <label>Ultima Conexión:</label>
+                                                <span style="font-size:0.9rem;">Sin ultima conexión</span>
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label>Cloud</label>
+                                                <button class="btn-ui btn-ui-sm btn-ui-outline-success" id="cloud-button">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="chain-id-branch" class="required">Cadena</label>
+                                                <select id="chain-id-branch">
+                                                    <option value="grido" selected>Grido</option>
+                                                    <option value="weiss">Weiss</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="client-id-branch" class="required">Cliente</label>
+                                                <select id="client-id-branch">
+                                                    <option value="ross" selected>ROSS SAS</option>
+                                                </select>
+                                                <button class="btn-ui btn-ui-sm btn-ui-primary" style="margin-left: 5px;">
+                                                    <span class="fas fa-search"></span>
+                                                </button>
+                                                <button class="btn-ui btn-ui-sm btn-ui-secondary" style="margin-left: 5px;">
+                                                    <span class="fas fa-undo"></span>
+                                                </button>
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="branch-code" class="required">Código de la Sucursal</label>
+                                                <input type="number" id="branch-code" value="5161">
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="branch-id-field" class="required">Código de Sucursal (BranchID)</label>
+                                                <input type="number" id="branch-id-field" value="5161" readonly>
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="branch-secret-field">Password de Sucursal (BranchSecret)</label>
+                                                <input type="text" id="branch-secret-field" value="ABCXYZ123" readonly>
+                                                <button class="btn-ui btn-ui-sm btn-ui-warning" style="margin-left: 5px;">
+                                                    Generar Nuevo secret
+                                                </button>
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="auto-reply-branch">Respuestas Automáticas</label>
+                                                <input type="checkbox" id="auto-reply-branch">
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="start-date" class="required">Fecha de Alta</label>
+                                                <input type="date" id="start-date" value="2024-01-01" readonly>
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="suspended-date">Fecha de Suspensión</label>
+                                                <input type="date" id="suspended-date" readonly>
+                                                <input type="checkbox" id="is-suspended" style="margin-left: 10px;">
+                                                <label for="is-suspended" style="display: inline; margin-left: 5px;">Suspendida</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Columna Derecha -->
+                                        <div class="form-column">
+                                            <div class="form-group-ui">
+                                                <label for="branch-id-field-right" class="required">Id de la Sucursal</label>
+                                                <input type="text" id="branch-id-field-right" value="5161">
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="branch-name" class="required">Nombre de la Sucursal</label>
+                                                <input type="text" id="branch-name" value="SAN LUIS SALTA">
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="branch-contact" class="required">Contacto de la Sucursal</label>
+                                                <input type="text" id="branch-contact" value="+54 9 351 7554986">
+                                            </div>
+                                            <div class="form-group-ui">
+                                                <label for="address-field" class="required">Domicilio</label>
+                                                <input type="text" id="address-field" value="Esfironica S/N, Lote 20, Parque Industrial Ferreyra" readonly>
+                                                <button class="btn-ui" style="background: none; border: none; padding: 0;">
+                                                    <img src="https://via.placeholder.com/30x30?text=MAP" alt="Map icon" style="width: 30px; height: 30px;">
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-actions-ui">
+                                        <button class="btn-ui btn-ui-secondary">Cancelar</button>
+                                        <button class="btn-ui btn-ui-primary" id="save-sucursal-button">Guardar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mat-tab-body-ui" data-tab-content="1" id="content-software">
+                                <div class="card-ui">
+                                    <h5 class="card-title-ui">Configuración de Software</h5>
+                                    <p>Contenido de la solapa Software (Ejemplo).</p>
+                                    <div class="form-actions-ui">
+                                        <button class="btn-ui btn-ui-secondary">Cancelar</button>
+                                        <button class="btn-ui btn-ui-primary">Guardar Software</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mat-tab-body-ui" data-tab-content="2" id="content-plataformas">
+                                <div class="card-ui">
+                                    <h5 class="card-title-ui">Configuración de Plataformas</h5>
+                                    <p>Contenido de la solapa Plataformas (Ejemplo).</p>
+                                    <div class="form-actions-ui">
+                                        <button class="btn-ui btn-ui-secondary">Cancelar</button>
+                                        <button class="btn-ui btn-ui-primary">Guardar Plataformas</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mat-tab-body-ui" data-tab-content="3" id="content-courier">
+                                <div class="card-ui">
+                                    <h5 class="card-title-ui">Configuración de Courier</h5>
+                                    <p>Contenido de la solapa Courier (Ejemplo).</p>
+                                    <div class="form-actions-ui">
+                                        <button class="btn-ui btn-ui-secondary">Cancelar</button>
+                                        <button class="btn-ui btn-ui-primary">Guardar Courier</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- NUEVA SOLAPA: Reglas de Negocio -->
+                            <div class="mat-tab-body-ui" data-tab-content="4" id="content-reglas">
+                                <div class="card-ui">
+                                    <h5 class="card-title-ui">Reglas de Negocio por Plataforma</h5>
+                                    <table class="business-rules-table-ui">
+                                        <thead>
+                                            <tr>
+                                                <th>Plataforma</th>
+                                                <th style="text-align: center;">Autoaceptación</th>
+                                                <th style="text-align: center;">Tiempo de Preparación</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Fila para PEDIDOS YA -->
+                                            <tr>
+                                                <td>PEDIDOS YA</td>
+                                                <td style="text-align: center;">
+                                                    <input type="checkbox" id="rules-pedidosya-auto" checked>
+                                                </td>
+                                                <td>
+                                                    <select id="rules-pedidosya-time">
+                                                        <option value="10">10'</option>
+                                                        <option value="15" selected>15'</option>
+                                                        <option value="20">20'</option>
+                                                        <option value="25">25'</option>
+                                                        <option value="30">30'</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <!-- Fila para RAPPI -->
+                                            <tr>
+                                                <td>RAPPI</td>
+                                                <td style="text-align: center;">
+                                                    <input type="checkbox" id="rules-rappi-auto">
+                                                </td>
+                                                <td>
+                                                    <select id="rules-rappi-time">
+                                                        <option value="10">10'</option>
+                                                        <option value="15">15'</option>
+                                                        <option value="20" selected>20'</option>
+                                                        <option value="25">25'</option>
+                                                        <option value="30">30'</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <!-- Fila para UBER EATS -->
+                                            <tr>
+                                                <td>UBER EATS</td>
+                                                <td style="text-align: center;">
+                                                    <input type="checkbox" id="rules-ubereats-auto" checked>
+                                                </td>
+                                                <td>
+                                                    <select id="rules-ubereats-time">
+                                                        <option value="10">10'</option>
+                                                        <option value="15">15'</option>
+                                                        <option value="20">20'</option>
+                                                        <option value="25" selected>25'</option>
+                                                        <option value="30">30'</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="form-actions-ui">
+                                        <button class="btn-ui btn-ui-secondary">Cancelar</button>
+                                        <button class="btn-ui btn-ui-primary" id="save-rules-button">Guardar Reglas</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript para la funcionalidad de los ejemplos
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Funcionalidad Compartida para Ambos Ejemplos ---
+            // Simulación de los botones de foto en Alta Cadena
+            const subirFotoChainBtn = document.getElementById('subir-foto-chain');
+            const eliminarFotoChainBtn = document.getElementById('eliminar-foto-chain');
+            const chainAvatarImg = document.getElementById('chain-avatar-img');
+
+            if (subirFotoChainBtn && eliminarFotoChainBtn && chainAvatarImg) {
+                subirFotoChainBtn.addEventListener('click', function() {
+                    alert('Simulando subir foto para Cadena...');
+                    chainAvatarImg.src = 'https://via.placeholder.com/100x100?text=Chain+New+Foto';
+                });
+                eliminarFotoChainBtn.addEventListener('click', function() {
+                    alert('Simulando eliminar foto para Cadena...');
+                    chainAvatarImg.src = 'https://via.placeholder.com/100x100?text=GRIDO+LOGO';
+                });
+            }
+
+            // Interacciones para la tabla de Configuración por Plataforma (en Alta Cadena)
+            const configTableCheckboxes = document.querySelectorAll('.config-table-ui input[type="checkbox"]');
+            configTableCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    console.log(`Checkbox ${this.id} (Configuración por Plataforma) cambiado a: ${this.checked}`);
+                });
+            });
+
+            const configTableSelects = document.querySelectorAll('.config-table-ui select');
+            configTableSelects.forEach(select => {
+                select.addEventListener('change', function() {
+                    console.log(`Select ${this.id} (Configuración por Plataforma) cambiado a: ${this.value} minutos`);
+                });
+            });
+
+            // --- Funcionalidad del Ejemplo de Alta Sucursal (Tabs) ---
+            const tabLabels = document.querySelectorAll('.mat-tab-label-ui');
+            const tabBodies = document.querySelectorAll('.mat-tab-body-ui');
+            const saveSucursalButton = document.getElementById('save-sucursal-button');
+
+            // Simulación: La solapa "Sucursal" está "cargada" o habilitada para permitir
+            // el acceso a otras solapas.
+            let isSucursalTabLoaded = true; // Inicia como NO cargada
+
+            function updateTabStates() {
+                tabLabels.forEach((label, index) => {
+                    // La solapa "Sucursal" (índice 0) siempre está habilitada.
+                    // Las solapas posteriores (índices 1, 2, 3, 4) están habilitadas si la solapa "Sucursal" está "cargada".
+                    if (index > 0) {
+                        if (isSucursalTabLoaded) {
+                            label.classList.remove('disabled');
+                        } else {
+                            label.classList.add('disabled');
+                        }
+                    }
+                });
+            }
+
+            // Llamada inicial para establecer el estado de las solapas
+            updateTabStates();
+
+            // Lógica de Navegación entre Solapas
+            tabLabels.forEach(label => {
+                label.addEventListener('click', function() {
+                    const targetTab = parseInt(this.dataset.tab);
+
+                    if (this.classList.contains('disabled')) {
+                        console.log('Solapa deshabilitada. No se permite la navegación.');
+                        alert('Por favor, "guarde" o "complete" la solapa "Sucursal" primero para navegar a otras secciones.');
+                        return;
+                    }
+
+                    // Remover 'active' de todas las solapas y cuerpos
+                    tabLabels.forEach(lbl => lbl.classList.remove('active'));
+                    tabBodies.forEach(body => body.classList.remove('active'));
+
+                    // Añadir 'active' a la solapa clicada y su cuerpo correspondiente
+                    this.classList.add('active');
+                    document.querySelector(`[data-tab-content="${targetTab}"]`).classList.add('active');
+
+                    console.log(`Navegando a solapa: ${this.textContent}`);
+                });
+            });
+
+            // Simulación de "Guardar" en solapa Sucursal
+            if (saveSucursalButton) {
+                saveSucursalButton.addEventListener('click', function() {
+                    alert('Simulando guardado de Sucursal...');
+                    isSucursalTabLoaded = true; // Simulación: Después de guardar, la solapa Sucursal está "cargada"
+                    updateTabStates(); // Actualizar el estado visual de las solapas
+                    console.log('Sucursal guardada y otras solapas habilitadas.');
+                });
+            }
+
+            // Simulación de "Generar Nuevo Secret" en solapa Sucursal
+            const generateSecretBranchButton = document.getElementById('branch-secret-field').nextElementSibling; // Asume que el botón está justo después del input
+            if (generateSecretBranchButton) {
+                generateSecretBranchButton.addEventListener('click', function() {
+                    const secretInput = document.getElementById('branch-secret-field');
+                    if (secretInput) {
+                        secretInput.value = Math.random().toString(36).substring(2, 10).toUpperCase();
+                        console.log('Nuevo secret generado en Sucursal');
+                    }
+                });
+            }
+
+            // Simulación de "Suspender" en solapa Sucursal
+            const suspendBranchCheckbox = document.getElementById('is-suspended');
+            const suspendedDateBranchInput = document.getElementById('suspended-date');
+            if (suspendBranchCheckbox && suspendedDateBranchInput) {
+                suspendBranchCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        suspendedDateBranchInput.value = new Date().toISOString().slice(0,10);
+                        suspendedDateBranchInput.removeAttribute('readonly');
+                    } else {
+                        suspendedDateBranchInput.value = '';
+                        suspendedDateBranchInput.setAttribute('readonly', 'true');
+                    }
+                    console.log('Checkbox Suspendida (Sucursal) cambiado');
+                });
+            }
+
+            // Interacciones para la tabla de Reglas de Negocio (solapa "Reglas de Negocio")
+            const rulesTableCheckboxes = document.querySelectorAll('.business-rules-table-ui input[type="checkbox"]');
+            rulesTableCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    console.log(`Checkbox ${this.id} (Reglas de Negocio) cambiado a: ${this.checked}`);
+                });
+            });
+
+            const rulesTableSelects = document.querySelectorAll('.business-rules-table-ui select');
+            rulesTableSelects.forEach(select => {
+                select.addEventListener('change', function() {
+                    console.log(`Select ${this.id} (Reglas de Negocio) cambiado a: ${this.value} minutos`);
+                });
+            });
+
+            // Simulación de "Guardar Reglas"
+            const saveRulesButton = document.getElementById('save-rules-button');
+             if (saveRulesButton) {
+                 saveRulesButton.addEventListener('click', function() {
+                     alert('Simulando guardado de Reglas de Negocio...');
+                     console.log('Reglas de Negocio guardadas.');
+                 });
+             }
+        });
+    </script>
+</body>
+</html>
