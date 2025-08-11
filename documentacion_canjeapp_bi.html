@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especificación Técnica: Nuevos Atributos para CanjeApp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styles & Fonts --- */
+        body {
+            font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            color: #343a40;
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- Header & Typography --- */
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 2em;
+            padding-bottom: 1em;
+        }
+
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            color: #004085;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 30px;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            color: #343a40;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        /* --- Summary Box --- */
+        .summary-box {
+            background-color: #e7f3fe;
+            border-left: 5px solid #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .summary-box p {
+            margin-top: 0;
+        }
+
+        .summary-box ul {
+            padding-left: 20px;
+        }
+
+        /* --- Code Blocks & Inline Code --- */
+        code {
+            font-family: 'Roboto Mono', Menlo, Monaco, Consolas, 'Courier New', monospace;
+        }
+
+        :not(pre) > code {
+            background-color: #e9ecef;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        pre code {
+            color: #f8f8f2;
+            background: none;
+            padding: 0;
+            font-size: 0.95em;
+        }
+
+        /* --- Lists and Details --- */
+        ul {
+            list-style-type: disc;
+            padding-left: 25px;
+        }
+
+        .collection-details {
+            margin-top: 2rem;
+        }
+
+        .data-type {
+            color: #28a745;
+            font-family: 'Roboto Mono', monospace;
+            font-style: italic;
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="doc-header">
+            <h1>Especificación Técnica para BI: Formato de Pedidos con Canje</h1>
+        </div>
+        <section id="objetivo">
+            <h2>1. Objetivo de este Documento</h2>
+            <p>
+                Este documento describe e ilustra la adición de nuevos atributos en las colecciones de MongoDB <strong>orders</strong> y <strong>news</strong>. Esta actualización da soporte a la nueva funcionalidad <strong>CanjeApp</strong>, permitiendo identificar y obtener detalles de los pedidos que incluyen un canje de puntos.
+            </p>
+        </section>
+
+        <section id="resumen">
+            <h2>2. Resumen del Cambio</h2>
+            <div class="summary-box">
+                <p><strong>Tipo de cambio:</strong></p>
+                <ul>
+                    <li>Corresponde únicamente a una <strong>adición de nuevos atributos</strong>. No se modificarán ni eliminarán campos existentes.</li>
+                </ul>
+                <p><strong>Condición de Aplicación:</strong></p>
+                <ul>
+                    <li>Los nuevos atributos aparecerán <strong>solo cuando</strong> el pedido provenga de la plataforma <strong>PediGrido (<code>plataformaId: 7</code>)</strong>.</li>
+                </ul>
+                <p><strong>Colecciones Afectadas:</strong></p>
+                <ul>
+                    <li><code>orders</code> (Datos de entrada)</li>
+                    <li><code>news</code> (Datos de salida transformados)</li>
+                </ul>
+                <p>Para el resto de los pedidos (de otras plataformas Ej. PedidosYa, Rappi. etc.), la estructura de los documentos permanecerá sin cambios.</p>
+            </div>
+        </section>
+
+        <section id="detalle-atributos">
+            <h2>3. Detalle de Nuevos Atributos</h2>
+            <p>A continuación se detallan los nuevos campos. Los JSON mostrados son ejemplos simplificados; todos los demás atributos existentes en las órdenes seguirán presentes.</p>
+
+            <article class="collection-details">
+                <h3>3.1. Colección <code>orders</code> (Datos de Entrada)</h3>
+                <p>Estos atributos se agregarán al documento original del pedido cuando se reciba un canje desde PediGrido.</p>
+                <h4>Nuevos Atributos:</h4>
+                <ul>
+                    <li><code>order.user.tipoIdentificacion</code> <span class="data-type">String</span></li>
+                    <li><code>order.user.numeroTarjetaLoyalty</code> <span class="data-type">String</span></li>
+                    <li><code>order.user.contieneCanje</code> <span class="data-type">Boolean</span></li>
+                    <li><code>order.user.puntosCanjeados</code> <span class="data-type">Int</span></li>
+                    <li><code>order.details[].canje</code> <span class="data-type">Int (Valor 1 o 0)</span></li>
+                </ul>
+
+                <h4>Ejemplo de Estructura <code>order</code> con Canje:</h4>
+                <pre><code class="language-javascript">{
+  "order": {
+    "user": {
+      "dni": "39690194",
+      "tipoIdentificacion": "DNI",            // NUEVO ATRIBUTO
+      "numeroTarjetaLoyalty": "1234567890",    // NUEVO ATRIBUTO
+      "contieneCanje": true,                    // NUEVO ATRIBUTO
+      "puntosCanjeados": 3000,                  // NUEVO ATRIBUTO
+    },
+    "details": [
+      {
+        "name": "50% Descuento en Kilo por 3000 Puntos",
+        "sku": "1641",
+        "canje": 1,                             // NUEVO ATRIBUTO
+        "promotion": false,
+        "optionGroups": [
+          { 
+            "name": "Kilo de Helado", 
+            "sku": "64",
+            "notes": "Chocolate, Vainilla" 
+          }
+        ]
+      }
+    ]
+    // ... resto de los atributos de la orden
+  }
+}</code></pre>
+            </article>
+
+            <article class="collection-details">
+                <h3>3.2. Colección <code>news</code> (Salida Transformada)</h3>
+                <p>Estos atributos se agregarán al documento transformado que se genera para el consumo final.</p>
+                <h4>Nuevos Atributos:</h4>
+                <ul>
+                    <li><code>order.customer.tipoIdentificacion</code> <span class="data-type">String</span></li>
+                    <li><code>order.customer.numeroTarjetaLoyalty</code> <span class="data-type">String</span></li>
+                    <li><code>order.customer.contieneCanje</code> <span class="data-type">Boolean</span></li>
+                    <li><code>order.customer.puntosCanjeados</code> <span class="data-type">Int</span></li>
+                    <li><code>order.details[].canje</code> <span class="data-type">Int (Valor 1 o 0)</span></li>
+                </ul>
+
+                <h4>Ejemplo de Estructura <code>news</code> con Canje:</h4>
+                <pre><code class="language-javascript">{
+  "order": {
+    "customer": {
+      "dni": "39690194",
+      "tipoIdentificacion": "DNI",              // NUEVO ATRIBUTO
+      "numeroTarjetaLoyalty": "1234567890",      // NUEVO ATRIBUTO
+      "contieneCanje": true,                      // NUEVO ATRIBUTO
+      "puntosCanjeados": 3000,                    // NUEVO ATRIBUTO
+    },
+    "details": [
+      {
+        "description": "50% Descuento en Kilo por 3000 Puntos",
+        "sku": "1641",
+        "price": 5000,
+        "promo": 2,
+        "groupId": 1,
+        "canje": 1                                // NUEVO ATRIBUTO
+      },
+      {
+        "description": "Kilo de Helado",
+        "sku": "64",
+        "price": 0,
+        "optionalText": "Chocolate, Vainilla",
+        "promo": 1,
+        "groupId": 1,
+        "canje": 1                                // NUEVO ATRIBUTO
+      }
+    ]
+    // ... resto de los atributos de la orden
+  }
+}</code></pre>
+            </article>
+        </section>
+    </main>
+    <footer>
+        <p>Documento generado por el equipo de SmartPedidos | Fecha de Actualización: 11 de agosto de 2025</p>
+    </footer>
+</body>
+</html>
