@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de API v4 - Interruptor de 3 Estados</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f7f9;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.5em;
+      color: #212529;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+      vertical-align: middle;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      font-weight: 500;
+      color: #6c757d;
+      font-size: 0.85em;
+      text-transform: uppercase;
+    }
+
+    /* Estilos para el nuevo interruptor de 3 estados */
+    .tri-state-toggle {
+      position: relative;
+      width: 60px;
+      height: 26px;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7em;
+      font-weight: bold;
+      color: white;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    .tri-state-toggle .thumb {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background-color: white;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .tri-state-toggle[data-state="neutral"] {
+      background-color: #ccc;
+    }
+
+    .tri-state-toggle[data-state="neutral"] .thumb {
+      transform: translateX(0);
+    }
+
+    .tri-state-toggle[data-state="on"] {
+      background-color: #007bff;
+    }
+
+    .tri-state-toggle[data-state="on"] .thumb {
+      transform: translateX(17px);
+    }
+
+    .tri-state-toggle[data-state="off"] {
+      background-color: #dc3545;
+    }
+
+    .tri-state-toggle[data-state="off"] .thumb {
+      transform: translateX(-17px);
+    }
+
+    .footer {
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-top: 1px solid #e9ecef;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .sim-button {
+      flex-grow: 1;
+      padding: 12px 20px;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .sim-button:hover {
+      opacity: 0.85;
+    }
+
+    #simulate-success {
+      background-color: #28a745;
+    }
+
+    #simulate-partial {
+      background-color: #fd7e14;
+    }
+
+    #simulate-failure {
+      background-color: #dc3545;
+    }
+
+    .output-section {
+      display: flex;
+      gap: 20px;
+    }
+
+    .output-container {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .output-container h3 {
+      margin-top: 0;
+      font-size: 1.1em;
+      color: #495057;
+      border-bottom: 2px solid #dee2e6;
+      padding-bottom: 5px;
+    }
+
+    .output-json {
+      background-color: #2b303b;
+      color: #c0c5ce;
+      padding: 15px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Simulador de API SP - Interruptor de 3 Estados (ON / NEUTRAL / OFF)</h1>
+    </header>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Todos</th>
+            <th>Pedidos Ya (1)</th>
+            <th>Rappi (2)</th>
+            <th>Uber (3)</th>
+            <th>PediGrido (4)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="item-row" data-sku="127">
+            <td>(127) Alfajor Shot</td>
+            <td>
+              <div class="tri-state-toggle toggle-all" data-state="neutral">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="1">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="2">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="3">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="4">
+                <div class="thumb"></div>
+              </div>
+            </td>
+          </tr>
+          <tr class="item-row" data-sku="64">
+            <td>(64) Bombón Crocante</td>
+            <td>
+              <div class="tri-state-toggle toggle-all" data-state="neutral">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="1">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="2">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="3">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="4">
+                <div class="thumb"></div>
+              </div>
+            </td>
+          </tr>
+          <tr class="item-row" data-sku="2001">
+            <td>(2001) Torta Helada</td>
+            <td>
+              <div class="tri-state-toggle toggle-all" data-state="neutral">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="1">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="2">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="3">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="4">
+                <div class="thumb"></div>
+              </div>
+            </td>
+          </tr>
+          <tr class="item-row" data-sku="2002">
+            <td>(2002) Flan con Dulce</td>
+            <td>
+              <div class="tri-state-toggle toggle-all" data-state="neutral">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="1">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="2">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="3">
+                <div class="thumb"></div>
+              </div>
+            </td>
+            <td>
+              <div class="tri-state-toggle" data-state="neutral" data-platform-id="4">
+                <div class="thumb"></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">
+      <div class="button-group">
+        <button class="sim-button" id="simulate-success">Simular SUCCESS</button>
+        <button class="sim-button" id="simulate-partial">Simular PARTIAL_FAILURE</button>
+        <button class="sim-button" id="simulate-failure">Simular FAILURE</button>
+      </div>
+      <div class="output-section">
+        <div class="output-container">
+          <h3>Petición (Request)</h3>
+          <pre id="output-request" class="output-json"><code>Selecciona ON u OFF en los productos y haz clic en un botón de simulación...</code></pre>
+        </div>
+        <div class="output-container">
+          <h3>Respuesta (Response)</h3>
+          <pre id="output-response" class="output-json"><code>Aquí se mostrará la respuesta simulada del backend...</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const stateCycle = ['neutral', 'on', 'off'];
+      // --- Lógica de UI para el interruptor de 3 estados ---
+      document.querySelectorAll('.tri-state-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+          const currentToggle = e.currentTarget;
+          const currentState = currentToggle.dataset.state;
+          const nextStateIndex = (stateCycle.indexOf(currentState) + 1) % stateCycle.length;
+          const nextState = stateCycle[nextStateIndex];
+          if (currentToggle.classList.contains('toggle-all')) {
+            // Si es el interruptor "Todos", actualiza todos en la fila
+            const rowToggles = currentToggle.closest('.item-row').querySelectorAll('.tri-state-toggle:not(.toggle-all)');
+            rowToggles.forEach(t => t.dataset.state = nextState);
+            currentToggle.dataset.state = nextState;
+          } else {
+            // Si es un interruptor individual, solo se actualiza a sí mismo
+            currentToggle.dataset.state = nextState;
+            // Y luego actualiza el estado del "Todos" si es necesario
+            updateAllToggleState(currentToggle.closest('.item-row'));
+          }
+        });
+      });
+
+      function updateAllToggleState(row) {
+        const platformToggles = row.querySelectorAll('.tri-state-toggle:not(.toggle-all)');
+        const allToggle = row.querySelector('.toggle-all');
+        const firstState = platformToggles[0].dataset.state;
+        const allSame = Array.from(platformToggles).every(t => t.dataset.state === firstState);
+        allToggle.dataset.state = allSame ? firstState : 'neutral';
+      }
+      // --- Lógica de Simulación de API ---
+      const outputRequestEl = document.getElementById('output-request');
+      const outputResponseEl = document.getElementById('output-response');
+      const branchId = 4390;
+      /**
+       * Genera el payload agrupando SKUs por combinaciones idénticas de platformIds
+       */
+      function generateRequestPayload() {
+        const onGroupings = {}; // { "[1,2]": { platformId: [1,2], skus: [] } }
+        const offGroupings = {};
+        document.querySelectorAll('.item-row').forEach(row => {
+          const sku = row.dataset.sku;
+          const onPlatforms = [];
+          const offPlatforms = [];
+          row.querySelectorAll('.tri-state-toggle:not(.toggle-all)').forEach(toggle => {
+            const platformId = parseInt(toggle.dataset.platformId, 10);
+            if (toggle.dataset.state === 'on') {
+              onPlatforms.push(platformId);
+            } else if (toggle.dataset.state === 'off') {
+              offPlatforms.push(platformId);
+            }
+          });
+          if (onPlatforms.length > 0) {
+            const key = JSON.stringify(onPlatforms.sort()); // Clave única para la combinación
+            if (!onGroupings[key]) {
+              onGroupings[key] = {
+                platformId: onPlatforms,
+                skus: []
+              };
+            }
+            onGroupings[key].skus.push(sku);
+          }
+          if (offPlatforms.length > 0) {
+            const key = JSON.stringify(offPlatforms.sort());
+            if (!offGroupings[key]) {
+              offGroupings[key] = {
+                platformId: offPlatforms,
+                skus: []
+              };
+            }
+            offGroupings[key].skus.push(sku);
+          }
+        });
+        const itemsOn = Object.values(onGroupings);
+        const itemsOff = Object.values(offGroupings);
+        return {
+          branchId,
+          itemsOn,
+          itemsOff
+        };
+      }
+
+      function displayPayload(element, payload) {
+        element.textContent = JSON.stringify(payload, null, 2);
+      }
+
+      function handleSimulation(simulationType) {
+        const requestPayload = generateRequestPayload();
+        displayPayload(outputRequestEl, requestPayload);
+        const results = [];
+        const errors = [];
+        const allItems = [
+          ...requestPayload.itemsOn.map(item => ({
+            ...item,
+            action: "ON"
+          })),
+          ...requestPayload.itemsOff.map(item => ({
+            ...item,
+            action: "OFF"
+          }))
+        ];
+        let finalStatus = "SUCCESS";
+        if (allItems.length === 0) {
+          outputResponseEl.textContent = "No se realizaron cambios (todos los interruptores en NEUTRO).";
+          return;
+        }
+        allItems.forEach(item => {
+          let hasFailed = false;
+          if (simulationType === 'failure') {
+            hasFailed = true;
+            errors.push({
+              ...item,
+              branchId,
+              status: "FAILURE",
+              message: `Branch ${branchId} suspended`
+            });
+          } else if (simulationType === 'partial' && item.platformId.includes(1)) {
+            // Regla de simulación: La plataforma 1 siempre falla en modo parcial
+            hasFailed = true;
+            errors.push({
+              ...item,
+              branchId,
+              status: "FAILURE",
+              message: `Invalid credentials for platformId 1`
+            });
+          } else {
+            results.push({
+              ...item,
+              branchId,
+              status: "SUCCESS"
+            });
+          }
+        });
+        if (errors.length > 0) {
+          finalStatus = results.length > 0 ? "PARTIAL_FAILURE" : "FAILURE";
+        }
+        const responsePayload = {
+          status: finalStatus,
+          results,
+          errors: finalStatus === "SUCCESS" ? undefined : errors,
+          timestamp: new Date().toISOString()
+        };
+        // Limpiar el campo 'errors' si está vacío
+        if (responsePayload.errors && responsePayload.errors.length === 0) {
+          delete responsePayload.errors;
+        }
+        displayPayload(outputResponseEl, responsePayload);
+      }
+      document.getElementById('simulate-success').addEventListener('click', () => handleSimulation('success'));
+      document.getElementById('simulate-partial').addEventListener('click', () => handleSimulation('partial'));
+      document.getElementById('simulate-failure').addEventListener('click', () => handleSimulation('failure'));
+    });
+  </script>
+</body>
+
+</html>
