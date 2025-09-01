@@ -1,0 +1,3135 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Análisis de Cambios en Servicios</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code:wght@400&display=swap');
+
+    :root {
+      --bg-color: #f4f7f9;
+      --card-bg-color: #ffffff;
+      --text-color: #212529;
+      --text-muted-color: #6c757d;
+      --border-color: #dee2e6;
+      --primary-color: #0056b3;
+      --analysis-bg: #e6f7ff;
+      --analysis-border: #91d5ff;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 2em;
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    
+    .main-header {
+      background-color: var(--card-bg-color);
+      padding: 2em;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 2.5em;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .main-header h1 {
+      margin: 0 0 0.25em 0;
+      font-size: 2.2em;
+      color: var(--primary-color);
+    }
+    
+    .main-header p {
+      margin: 0;
+      font-size: 1.1em;
+      color: var(--text-muted-color);
+    }
+
+    .service-section {
+        margin-bottom: 3em;
+    }
+
+    .service-section > h2 {
+        font-size: 1.8em;
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 0.5em;
+        margin-bottom: 1.5em;
+    }
+    
+    .component-card {
+      background-color: var(--card-bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 2em;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    
+    .component-header {
+      padding: 1em 1.5em;
+      background-color: #fafafa;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .component-header h3 {
+      margin: 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 1.2em;
+    }
+
+    .component-body {
+      padding: 1.5em;
+    }
+
+    .component-body h4 {
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        font-size: 1.2em;
+        color: #343a40;
+    }
+    
+    .component-body h5 {
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        font-size: 1.1em;
+        font-weight: 700;
+    }
+    
+    .analysis-box {
+      background-color: var(--analysis-bg);
+      border-left: 4px solid var(--analysis-border);
+      padding: 1em 1.5em;
+      margin-top: 1.5em;
+      border-radius: 4px;
+    }
+    
+    .analysis-box h4 {
+      margin-top: 0;
+      font-size: 1.1em;
+      color: var(--primary-color);
+    }
+
+    pre[class*="language-"] {
+      padding: 1.2em !important;
+      margin: 1em 0 !important;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace !important;
+      font-size: 0.9em !important;
+      line-height: 1.5 !important;
+      border: 1px solid var(--border-color);
+      /* --- AJUSTE PARA ELIMINAR SCROLL --- */
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .component-header {
+  cursor: pointer; /* Indica que el elemento es clickeable */
+  list-style: none; /* Oculta el marcador de triángulo en Firefox */
+}
+
+/* Oculta el marcador de triángulo en Chrome/Safari */
+.component-header::-webkit-details-marker {
+  display: none;
+}
+    
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <header class="main-header">
+      <h1>Notas de Release Técnico</h1>
+      <p>Descripción general de las modificaciones implementadas en los servicios.</p>
+    </header>
+
+    <section id="summary" class="service-section">
+        <h2>Resumen General</h2>
+        <p>
+            Este documento detalla las modificaciones técnicas implementadas.
+        </p>
+    </section>
+
+    <section id="service-one" class="service-section">
+      <h2>Servicio: PLATFORM</h2>
+      
+<details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/controllers/peya.js</h3>
+  </summary>
+        <div class="component-body">
+            <h4>Análisis General</h4>
+            <p>
+                Los cambios en este controlador se centran en dos áreas principales:<br>
+                <b>Modificación de la Lógica de Negocio:</b> Se ha deshabilitado la funcionalidad que rechazaba automáticamente una orden de PedidosYa cuando el sistema detectaba que el restaurante estaba cerrado. La nueva política es confirmar la recepción del webhook a PedidosYa en todos los casos, dejando la gestión del rechazo a otro proceso.<br>
+            </p>
+            
+            <h4>Cambios Detallados</h4>
+
+            <h5>1. Eliminación de Dependencia del Modelo</h5>
+            <p><b>Explicación:</b> El modelo <code>rejectPeyaModel</code> se utilizaba para registrar las URLs de rechazo de PedidosYa que fallaban, para poder reintentarlas posteriormente. Dado que la lógica de rechazo automático en este punto del flujo ha sido eliminada, la importación y el uso de este modelo ya no son necesarios en este archivo.</p>
+            <b>Código Anterior:</b>
+            <pre><code class="language-javascript">
+// ...
+import settings from '../config/settings';
+import branch from '../models/branch';
+import rejectPeyaModel from '../models/rejectPeya'; // <-- ANTES: El modelo se importaba para ser utilizado.
+import platforms from '../models/platform';
+import Log from '../utils/log';
+// ...
+            </code></pre>
+            <b>Código Nuevo:</b>
+            <pre><code class="language-javascript">
+// ...
+import settings from '../config/settings';
+import branch from '../models/branch';
+//import rejectPeyaModel from '../models/rejectPeya'; // <-- DESPUÉS: La importación está comentada, indicando que el modelo ya no se usa aquí.
+import platforms from '../models/platform';
+import Log from '../utils/log';
+// ...
+            </code></pre>
+            
+          
+
+            <h5>2. Desactivación del Rechazo por Local Cerrado</h5>
+            <p><b>Explicación:</b> Este es el cambio funcional más importante. Anteriormente, si el método <code>validateNewOrders</code> determinaba que la orden debía ser rechazada por local cerrado (<code>ordersSaved.state === 'CLOSED_RESTAURANT_REJECTED'</code>), el controlador intentaba notificar a PedidosYa sobre el cierre y registraba la URL de rechazo para reintentos. La nueva lógica elimina este comportamiento. El código que creaba un registro en <code>rejectPeyaModel</code> ha sido comentado, y se han añadido notas explícitas del desarrollador que confirman esta nueva regla de negocio: "Actualmente las ordenes no se rechazan por local cerrado NUNCA".</p>
+            <b>Código Anterior:</b>
+            <pre><code class="language-javascript">
+// ...
+    .then(async (ordersSaved) => {
+        if (ordersSaved.state === 'CLOSED_RESTAURANT_REJECTED') {
+            // ... (código para notificar a Peya sobre el cierre) ...
+            try {
+                let temp = await axios.put(urlAvailability, body, headersConfig2);
+            } catch (error) {
+                Log.saveError(error, { message: 'Falló peticion closed orden: ' + req.body.code,  body: req.body, platform: 'PedidosYa'});  
+            }                    
+            await branch.findByIdAndUpdate(currentBranch.id, { alreadyClosedPeya: true });
+            // ANTES: Si la orden era rechazada por local cerrado, se creaba un registro en 'rejectPeyaModel' para reintentar el envío del rechazo.
+            await rejectPeyaModel.create({
+                url: req.body.callbackUrls.orderRejectedUrl
+            });
+            res.status(200).json(// ...
+            </code></pre>
+            <b>Código Nuevo:</b>
+            <pre><code class="language-javascript">
+// ...
+    .then(async (ordersSaved) => {
+        if (ordersSaved.state === 'CLOSED_RESTAURANT_REJECTED') {
+            // ... (código para notificar a Peya sobre el cierre) ...
+            try {
+                let temp = await axios.put(urlAvailability, body, headersConfig2);
+            } catch (error) {
+                Log.saveError(error, { message: 'Falló peticion closed orden: ' + req.body.code,  body: req.body, platform: 'PedidosYa'});  
+            }                    
+            await branch.findByIdAndUpdate(currentBranch.id, { alreadyClosedPeya: true });
+            // DESPUÉS: La lógica de crear un registro de reintento ha sido comentada, deshabilitando la funcionalidad.
+            // El comentario del desarrollador aclara la nueva regla de negocio.
+            //Actualmente las ordenes no se rechazan por local cerrado NUNCA
+            /*await rejectPeyaModel.create({
+                url: req.body.callbackUrls.orderRejectedUrl
+            });*/
+            //Actualmente las ordenes no se rechazan por local cerrado NUNCA
+            res.status(200).json(// ...
+            </code></pre>
+
+          <div class="analysis-box">
+            <h4>Conclusión del análisis</h4>
+            <p>Se ha desactivado la funcionalidad que rechazaba automáticamente un pedido de PedidosYa si el sistema consideraba que la tienda estaba cerrada.</p>
+            <p>El flujo ahora es el siguiente:</p>
+            <ol>
+                <li>Llega una orden de PedidosYa.</li>
+                <li>El sistema detecta que la sucursal está cerrada.</li>
+                <li>Se actualiza el estado de la sucursal a <code>alreadyClosedPeya: true</code>.</li>
+                <li>NO se hace nada para rechazar la orden en la plataforma de PedidosYa en este punto. La orden simplemente no se procesa para su rechazo.</li>
+            </ol>
+            </ul>
+            <p>Este cambio elimina una vieja lógica de rechazo automático para PedidosYa.</p>
+          </div>
+        </div>
+      </details>
+          
+          
+<details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/platforms/management/platform/mercadoPago.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+          Los cambios en este archivo introducen una <b>nueva lógica de negocio</b> para el flujo de aceptación de pedidos de MercadoPago, haciéndolo configurable. La decisión de aceptar un pedido automáticamente ya no está codificada de forma fija, sino que ahora depende de reglas de <b>auto-aceptación</b> que pueden ser definidas a nivel de cadena (tenant) y/o de sucursal (branch).
+      </p>
+      <p>Esto establece<b> 2 flujos:</b></p>
+      <ul>
+        <li><b>Flujo Automático:</b> Si una regla <code>autoAccept</code> está activa, la orden se confirma inmediatamente al ser recibida (en el método <code>receiveOrder</code>).</li>
+        <li><b>Flujo Manual:</b> Si no hay reglas de auto-aceptación, la orden espera una confirmación manual, que se gestiona a través del método <code>confirmOrder</code>.</li>
+      </ul>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Importación de Dependencias Adicionales</h5>
+      <p><b>Explicación:</b> Se añade la importación del modelo <code>branchModel</code>.Ya que permite al código consultar la base de datos para verificar si existen reglas de auto-aceptación configuradas para la sucursal o la cadena a la que pertenece la orden.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ...
+import { APP_PLATFORM } from '../../../utils/errors/codeError';
+import NewsStateSingleton from '../../../utils/newsState';
+import mercadoPagoClientModel from '../../../models/mercadoPagoClient';
+import Log from '../../../utils/log';
+// ...
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// ...
+import { APP_PLATFORM } from '../../../utils/errors/codeError';
+import NewsStateSingleton from '../../../utils/newsState';
+import mercadoPagoClientModel from '../../../models/mercadoPagoClient';
+import branchModel from '../../../models/branch'; // <-- DESPUÉS: Se importa el modelo de sucursal para consultar las reglas.
+import Log from '../../../utils/log';
+// ...
+      </code></pre>
+      
+      <h5>2. Modificación del Método <code>receiveOrder</code></h5>
+      <p><b>Explicación:</b> Este método, que se activa cuando llega una <code>news</code> para enviar <code>recieve</code>, ha sido refactorizado para manejar el flujo de <b>aceptación automática</b>. Su responsabilidad ahora es verificar si existen reglas de <code>autoAccept</code> y, solo si se cumplen, proceder a notificar la aceptación a la API de MercadoPago.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: La lógica era simple. Si la orden estaba en estado pendiente (statusId === 1), se aceptaba incondicionalmente.
+async receiveOrder(order) {
+  return new Promise(async (resolve) => {
+    try {
+        if (order.statusId === 1) {
+        let mercadoPagoClient = await mercadoPagoClientModel.findOne({ branches: order.branchId});             
+        let body = {
+          "status": "accepted"
+        };
+        const headersConfig = { /* ... */ };
+        let url = `${this._platform.credentials.data.baseUrl}/proximity-integration/shipments/${order.id}/accept`;
+        await axios.put(url, body, headersConfig);
+        resolve(true);
+        }
+        else 
+        resolve(false);        
+    } catch (error) {
+      resolve(false);
+      Log.saveError(error, { message: 'Falló receiveOrder MercadoPago', platform: 'MercadoPago' });
+    }          
+  });
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+async receiveOrder(order) {
+  return new Promise(async (resolve) => {
+    try {
+      // DESPUÉS: La condición ahora verifica que la plataforma esté configurada para recibir y confirmar, y que la orden sea nueva.
+      if (this.statusResponse.receive && this.statusResponse.confirm && order.statusId === 1) {     
+        let boolRules = false;
+        // DESPUÉS: Se busca la sucursal y se popula la información de la cadena a la que pertenece.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        // DESPUÉS: Se busca una regla de auto-aceptación específica para esta plataforma a nivel de sucursal.
+        const branchPlatform = currentBranch.platforms.find(
+          r => r.rules && r.rules.internalCode === this._platform.internalCode && r.rules.autoAccept
+        );
+        // DESPUÉS: Se busca una regla de auto-aceptación a nivel de cadena (tenant).
+        const chainRule = currentBranch.chain.platformRules.find(
+          r => r.platformId === this._platform.internalCode && r.rules && r.rules.autoAccept
+        );
+        // DESPUÉS: Si se encuentra una regla en cualquiera de los dos niveles, se activa la auto-aceptación.
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: La llamada a la API de MercadoPago solo se ejecuta si se encontró una regla de auto-aceptación.
+        if(boolRules) {            
+          let mercadoPagoClient = await mercadoPagoClientModel.findOne({ branches: order.branchId});             
+          let body = {
+            "status": "accepted"
+          };
+          const headersConfig = { /* ... */ };         
+          let url = `${this._platform.credentials.data.baseUrl}/proximity-integration/shipments/${order.id}/accept`;
+          await axios.put(url, body, headersConfig);
+          resolve(true);
+        } else resolve(false) // Si no hay regla, no se hace nada en este paso.
+      } else resolve(false);        
+    } catch (error) {
+      resolve(false);
+      Log.saveError(error, { message: 'Falló receiveOrder MercadoPago', platform: 'MercadoPago' });
+    }          
+  });
+}
+      </code></pre>
+
+      <h5>3. Modificación del Método <code>confirmOrder</code></h5>
+      <p><b>Explicación:</b> Este método, que se activa con una confirmación manual desde el POS, ahora maneja el flujo de <b>aceptación manual</b>. Su lógica es la inversa de <code>receiveOrder</code>: solo notificará a la API de MercadoPago si la orden <b>NO</b> fue aceptada automáticamente en el paso anterior.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: El método solo actualizaba el estado interno de la orden y no realizaba ninguna llamada a la API externa.
+async confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {      
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      resolve(false);
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló confirmOrder MercadoPago ' + order.id, order: order, deliveryTimeId: deliveryTimeId, platform: 'MercadoPago' });
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+async confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {      
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      // DESPUÉS: Se verifica si la plataforma está configurada para enviar confirmaciones.
+      if(this.statusResponse.confirm) {
+        let boolRules = false;
+        // DESPUÉS: Se replica la misma lógica de búsqueda de reglas de auto-aceptación.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: Esta es la lógica clave. La llamada a la API solo se ejecuta si NO se encontró una regla de auto-aceptación.
+        if(!boolRules) {       
+          let mercadoPagoClient = await mercadoPagoClientModel.findOne({ branches: order.branchId});             
+          let body = {
+            "status": "accepted"
+          };
+          const headersConfig = { /* ... */ };          
+          let url = `${this._platform.credentials.data.baseUrl}/proximity-integration/shipments/${order.id}/accept`;
+          await axios.put(url, body, headersConfig);
+          resolve(true); 
+        } else resolve(false); // Si ya se auto-aceptó, no se hace nada para evitar duplicados.                   
+      } else resolve(false);
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló confirmOrder MercadoPago ' + order.id, order: order, deliveryTimeId: deliveryTimeId, platform: 'MercadoPago' });
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>Las modificaciones transforman el comportamiento de la integración con MercadoPago de estático a <b>configurable</b>.</p>
+      <ul>
+          <li><b>Comportamiento Configurable:</b> La decisión de aceptar un pedido automáticamente ya no está codificada de forma fija. Ahora depende de la configuración de la base de datos a nivel de <code>chain</code> (tenant) y <code>branch</code> (sucursal).</li>
+          <li><b>Flujo(Automático vs. Manual):</b>
+              <ul>
+                  <li><code>receiveOrder</code> se encarga de la <b>aceptación automática</b> si la regla <code>autoAccept</code> está presente.</li>
+                  <li><code>confirmOrder</code> se encarga de la <b>aceptación manual</b>, pero solo si la aceptación automática no estaba configurada, previniendo acciones redundantes.</li>
+              </ul>
+          </li>
+      </ul>
+    </div>
+  </div>
+</details>
+  
+  
+<details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/platforms/management/platform/pedidosYa.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Los cambios en PedidosYa implementan la misma arquitectura de <b>reglas de auto-aceptación</b> vista en MercadoPago, pero con una capa adicional: el <b>cálculo dinámico del tiempo de preparación del pedido</b>.
+      </p>
+      <p>
+        Esto transforma el flujo de aceptación de un proceso estático a uno configurable, donde no solo se decide si aceptar automáticamente, sino también <b>cuándo estará listo el pedido</b>, basándose en la configuración del tenant (cadena/sucursal).
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Modificación del Método <code>receiveOrder</code></h5>
+      <p><b>Explicación:</b> Este método ha sido completamente refactorizado para manejar el flujo de <b>aceptación automática</b>. Ahora, en lugar de aceptar incondicionalmente, primero verifica si existen reglas de <code>autoAccept</code> y, si es así, calcula un tiempo de preparación dinámico para enviarlo en la notificación a la API de PedidosYa.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: La lógica era simple. Si la orden estaba en estado pendiente, se aceptaba inmediatamente enviando un 'acceptanceTime: null'.
+async receiveOrder(order) {
+  try {
+    let fullOrder = await orderModel.findOne({
+      'order.code': order.id
+    });
+    return new Promise(async (resolve) => {
+      if (order.statusId === 1) {
+
+        const body = {
+          acceptanceTime: null,
+          remoteOrderId: order.id,
+          status: 'order_accepted'
+        };
+        const headersConfig = { /* ... */ };
+
+        const url = fullOrder.order.callbackUrls.orderAcceptedUrl;
+        try {
+          await axios.post(url, body, headersConfig);
+          resolve(true);
+        } catch (error) {
+          // ... (manejo de error simple)
+          resolve(false);
+        }
+      }
+      else resolve(false);
+    });
+  } catch (error) {
+    // ...
+    resolve(false);
+  }
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+async receiveOrder(order) {
+  try {   
+    return new Promise(async (resolve) => {
+      try {
+        // DESPUÉS: La condición ahora verifica que la plataforma esté configurada para el ciclo completo y que la orden sea nueva.
+        if (this.statusResponse.receive && this.statusResponse.confirm && order.statusId === 1) {     
+          let boolRules = false;
+          // DESPUÉS: Se busca la sucursal y se popula la información de la cadena para acceder a las reglas.
+          const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+          // DESPUÉS: Se busca una regla de auto-aceptación a nivel de sucursal.
+          const branchPlatform = currentBranch.platforms.find(
+            r => r.rules && r.rules.internalCode === this._platform.internalCode && r.rules.autoAccept
+          );
+          // DESPUÉS: Se busca una regla de auto-aceptación a nivel de cadena.
+          const chainRule = currentBranch.chain.platformRules.find(
+            r => r.platformId === this._platform.internalCode && r.rules && r.rules.autoAccept
+          );
+          if(branchPlatform || chainRule)
+            boolRules = true;
+          // DESPUÉS: La lógica de aceptación solo se ejecuta si se encontró una regla.
+          if(boolRules) {
+            // DESPUÉS: Se determina el ID del tiempo de preparación según la jerarquía de reglas (sucursal > cadena).
+            let preparationTime = 1;   
+            if (branchPlatform) {
+              preparationTime = branchPlatform.rules.preparationTime;
+            } else {
+              preparationTime = chainRule.rules.preparationTimeId;
+            }
+            // DESPUÉS: Se calcula la hora exacta en que el pedido estará listo.
+            let deliveryTimes = [];
+            deliveryTimes = require('../../../assets/deliveryTimes').generic;
+            let time = deliveryTimes.find(r => r.id.toString() === preparationTime);
+                    
+            let timeMins = (time.maxMinutes + time.minMinutes )/2;
+            const readyForPickup = new Date();
+            readyForPickup.setMinutes(readyForPickup.getMinutes() +  Math.round(timeMins));
+            
+            let fullOrder = await orderModel.findOne({
+              'order.code': order.id
+            });
+
+            // DESPUÉS: El 'acceptanceTime' en el body ahora contiene la hora calculada en formato ISO.
+            const body = {
+              acceptanceTime: readyForPickup.toISOString(),
+              remoteOrderId: order.id,
+              status: 'order_accepted'
+            };
+            const headersConfig = { /* ... */ };
+
+            const url = fullOrder.order.callbackUrls.orderAcceptedUrl;
+            try {
+              await axios.post(url, body, headersConfig);
+              resolve(true);
+            } catch (error) {
+              Log.saveError(error, { message: 'Falló peticion confirm Peya' + order.id, platform: 'PedidosYa' });
+              // DESPUÉS: Si la llamada falla, se guarda el tiempo calculado para futuros reintentos.
+              await rejectPeyaModel.create({
+                url: fullOrder.order.callbackUrls.orderAcceptedUrl,
+                platformId: 1,
+                orderId: order.id,
+                'extraData.readyForPickup': readyForPickup.toISOString()
+              });
+              resolve(false);
+            }
+          } else resolve(false)
+        } else resolve(false);
+      } catch (error) {
+        Log.saveError(error, { message: 'Falló receiveOrder peya IN' + order.id, platform: 'PediGrido' });
+        resolve(false);
+      }   
+    });
+  } catch (error) {
+    Log.saveError(error, { message: 'Falló receiveOrder general Peya' + order.id, platform: 'PedidosYa' });
+    resolve(false);
+  }
+}
+      </code></pre>
+      
+      <h5>2. Modificación del Método <code>confirmOrder</code></h5>
+      <p><b>Explicación:</b> Este método ahora maneja el flujo de <b>aceptación manual</b>, que se ejecuta solo si no se aplicó la auto-aceptación. Al igual que <code>receiveOrder</code>, ha sido modificado para calcular y enviar un tiempo de preparación, pero esta vez basándose en el <code>deliveryTimeId</code> proporcionado por el POS.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: El método solo actualizaba el estado interno y no realizaba ninguna llamada a la API externa.
+async confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      resolve(false);
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló confirmOrder Peya 3' + order.id, order: order, deliveryTimeId: deliveryTimeId, platform: 'PedidosYa' });       
+      resolve(false);
+    }
+  });    
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+async confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      // DESPUÉS: Se añade la lógica para verificar si debe actuar.
+      if(this.statusResponse.confirm) {
+        let boolRules = false;
+        // DESPUÉS: Se busca si existen reglas de auto-aceptación.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: La llamada a la API solo se ejecuta si NO se encontró una regla de auto-aceptación.
+        if(!boolRules) {       
+          // DESPUÉS: Se calcula el tiempo de preparación, pero usando el 'deliveryTimeId' que viene del POS.
+          let deliveryTimes = [];
+          deliveryTimes = require('../../../assets/deliveryTimes').generic;
+          let time = deliveryTimes.find(r => r.id.toString() === deliveryTimeId);
+          
+          let timeMins = (time.maxMinutes + time.minMinutes )/2;
+          const readyForPickup = new Date();
+          readyForPickup.setMinutes(readyForPickup.getMinutes() +  Math.round(timeMins));              
+                
+          let fullOrder = await orderModel.findOne({
+            'order.code': order.id
+          });
+          // DESPUÉS: Se construye y envía el payload a la API de PedidosYa con el tiempo calculado.
+          const body = {
+            acceptanceTime: readyForPickup.toISOString(),
+            remoteOrderId: order.id,
+            status: 'order_accepted'
+          };
+          const headersConfig = { /* ... */ };
+
+          const url = fullOrder.order.callbackUrls.orderAcceptedUrl;
+          try {
+            await axios.post(url, body, headersConfig);
+            resolve(true);
+          } catch (error) {
+            // ... (manejo de error mejorado, igual que en receiveOrder)
+            resolve(false);
+          }
+        } else resolve(false);                   
+      } else resolve(false);
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló confirmOrder Peya 3' + order.id, order: order, deliveryTimeId: deliveryTimeId, platform: 'PedidosYa' });       
+      resolve(false);
+    }
+  });    
+}
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>
+        <code>Pedidos Ya</code> se actualiza de forma similar a <code>mercadoPago.js</code>, pero con una capa adicional:
+      </p>
+      <ul>
+          <li><b>Aceptación Condicional:</b> Implementa el mismo flujo (automático vs. manual) basado en reglas de <code>autoAccept</code>.</li>
+          <li><b>Cálculo Dinámico del Tiempo de Preparación:</b> El sistema ya no solo decide si aceptar, sino también <b>cuándo estará listo el pedido</b>, basándose en la configuración del tenant.</li>
+          <li><b>Tiempos de Preparación Contextuales:</b>
+              <ul>
+                  <li>En la aceptación automática, el tiempo se toma de las nuevas reglas (<code>rules.preparationTime</code>).</li>
+                  <li>En la confirmación manual, el tiempo se toma del parámetro <code>deliveryTimeId</code>, que es proporcionado por el POS en el momento de la acción.</li>
+              </ul>
+          </li>
+          <li><b>Reintentos:</b> Guardar el <code>readyForPickup</code> en <code>extraData</code> hace que el sistema de reintentos sea más fiable y consistente.</li>
+      </ul>
+    </div>
+  </div>
+ </details>
+            
+<details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/platforms/management/platform/rapiboy.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Los cambios en este archivo adaptan la integración con Rapiboy (PediGrido) al sistema de <b>reglas de auto-aceptación</b>. El patrón es muy similar al implementado en <code>pedidosYa</code>, pero se ajusta a las particularidades de la API de PediGrido, que utiliza un campo <code>Demora</code> en lugar de un <code>acceptanceTime</code>.
+      </p>
+      <p>
+        La modificación principal es reemplazar un comportamiento de aceptación fijo por un sistema <b>configurable</b>, donde el tiempo de preparación (Demora) se obtiene de las reglas definidas a nivel de cadena o sucursal.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Importación de Dependencias Adicionales</h5>
+      <p><b>Explicación:</b> Se añade la importación del modelo <code>branchModel</code>. Esto es importante para la nueva funcionalidad, ya que permite consultar la base de datos para verificar si existen reglas de <code>autoAccept</code> y obtener los tiempos de preparación configurados.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ...
+import { APP_BRANCH, APP_PLATFORM } from '../../../utils/errors/codeError';
+import Log from '../../../utils/log';
+import rejectPeyaModel from '../../../models/rejectPeya';
+// ...
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// ...
+import { APP_BRANCH, APP_PLATFORM } from '../../../utils/errors/codeError';
+import Log from '../../../utils/log';
+import rejectPeyaModel from '../../../models/rejectPeya';
+import branchModel from '../../../models/branch'; // <-- DESPUÉS: Se importa el modelo de sucursal para consultar las reglas.
+// ...
+      </code></pre>
+      
+      <h5>2. Modificación del Método <code>receiveOrder</code></h5>
+      <p><b>Explicación:</b> Este método ha sido refactorizado para manejar el flujo de <b>aceptación automática</b>. Ahora verifica si existen reglas de <code>autoAccept</code> y, si es así, utiliza el tiempo de preparación configurado en esas reglas para enviarlo en el campo <code>Demora</code> a la API de PediGrido.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: La lógica aceptaba la orden incondicionalmente si estaba en estado pendiente, enviando un valor fijo 'Demora: 1'.
+async receiveOrder(order) {
+  try {      
+      return new Promise(async (resolve) => {          
+        try {  
+          if (order.statusId === 1) {
+            const body = {
+              Token: this.token,
+              IdPedido: order.id,
+              Demora: 1
+            };
+            const headers = { /* ... */ };
+            const url = `${this.baseUrl}${this.urlConfirmed}`;
+            try {
+              await axios.put(url, body, headers);
+              resolve(true); 
+            } catch (error) {
+              // ... (manejo de error simple)
+              resolve(false);
+            }            
+          }else{
+            resolve(false);
+          }               
+        } catch (error) {
+          // ...
+          resolve(false);
+        }
+      });
+  } catch (error) {
+    // ...
+    resolve(false);
+  }
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+async receiveOrder(order) {
+  try {           
+      return new Promise(async (resolve) => {          
+        try {  
+          // DESPUÉS: La condición ahora verifica que la plataforma esté configurada para el ciclo completo y que la orden sea nueva.
+          if (this.statusResponse.receive && this.statusResponse.confirm && order.statusId === 1) {           
+            let boolRules = false;
+            // DESPUÉS: Se busca la sucursal y la cadena para acceder a las reglas.
+            const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+            const branchPlatform = currentBranch.platforms.find( /* ... */ );
+            const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+            if(branchPlatform || chainRule)
+              boolRules = true;  
+            // DESPUÉS: La lógica de aceptación solo se ejecuta si se encontró una regla de auto-aceptación.
+            if(boolRules) {
+              // DESPUÉS: Se determina el ID del tiempo de preparación según la jerarquía de reglas (sucursal > cadena).
+              let preparationTime = 1;   
+              if (branchPlatform) {
+                preparationTime = branchPlatform.rules.preparationTime;
+              } else {
+                preparationTime = chainRule.rules.preparationTimeId;
+              }
+              // DESPUÉS: El campo 'Demora' ahora es dinámico, basado en el tiempo de preparación configurado.
+              const body = {
+                Token: this.token,
+                IdPedido: order.id,
+                Demora: parseInt(preparationTime)
+              };
+              const headers = { /* ... */ };
+              const url = `${this.baseUrl}${this.urlConfirmed}`;
+              try {
+                await axios.put(url, body, headers);
+                resolve(true); 
+              } catch (error) {
+                Log.saveError(error, { message: 'Falló peticion confirm rapiboy ' + order.id, platform: 'PediGrido' });
+                // DESPUÉS: Si la llamada falla, se guarda el valor de 'Demora' para futuros reintentos.
+                await rejectPeyaModel.create({
+                  url: url,
+                  platformId: 7,
+                  orderId: order.id,
+                  'extraData.Demora': parseInt(preparationTime)
+                });
+                resolve(false);
+              }      
+            } else resolve(false);
+          } else resolve(false);                       
+        } catch (error) {
+          Log.saveError(error, { message: 'Falló receiveOrder rapiboy '+ order.id,  order: order, platform: 'PediGrido'  });             
+          resolve(false);
+        }
+      });
+  } catch (error) {
+    Log.saveError(error, { message: 'Falló receiveOrder general rapiboy' + order.id, platform: 'PediGrido' });
+    resolve(false);
+  }
+}
+      </code></pre>
+
+      <h5>3. Modificación del Método <code>confirmOrder</code></h5>
+      <p><b>Explicación:</b> Este método ahora maneja el flujo de <b>aceptación manual</b>. Solo notificará a la API de Rapiboy si la orden <b>NO</b> fue aceptada automáticamente, y utilizará el <code>deliveryTimeId</code> proporcionado por el POS como valor para el campo <code>Demora</code>.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: El método solo actualizaba el estado interno de la orden y no realizaba ninguna llamada a la API externa.
+async confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      resolve(false);
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló confirmOrder rapiboy '+ order.id,  order: order, deliveryTimeId:deliveryTimeId, platform: 'PediGrido'  });          
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+async confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      // DESPUÉS: Se añade la lógica para verificar si debe actuar.
+      if(this.statusResponse.confirm) {
+        let boolRules = false;
+        // DESPUÉS: Se busca si existen reglas de auto-aceptación.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: La llamada a la API solo se ejecuta si NO se encontró una regla de auto-aceptación.
+        if(!boolRules) {    
+          // DESPUÉS: El campo 'Demora' ahora se basa en el 'deliveryTimeId' que viene del POS.
+          const body = {
+            Token: this.token,
+            IdPedido: order.id,
+            Demora: parseInt(deliveryTimeId)
+          };
+          const headers = { /* ... */ };
+          const url = `${this.baseUrl}${this.urlConfirmed}`;
+          try {
+            await axios.put(url, body, headers);
+            resolve(true); 
+          } catch (error) {
+            Log.saveError(error, { message: 'Falló peticion confirm rapiboy ' + order.id, platform: 'PediGrido' });
+            // DESPUÉS: Se guarda el valor de 'Demora' en el registro de reintento.
+            await rejectPeyaModel.create({
+              url: url,
+              platformId: 7,
+              orderId: order.id,
+              'extraData.Demora': parseInt(deliveryTimeId)
+            });
+            resolve(false);
+          }  
+        } else resolve(false);                  
+      } else resolve(false);
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló confirmOrder rapiboy '+ order.id,  order: order, deliveryTimeId:deliveryTimeId, platform: 'PediGrido'  });          
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>Cambios en la integración de <code>PediGrido</code>.</p>
+      <ul>
+          <li><b>Aceptación Condicional y Flujo Dual:</b> Se implementa el sistema de <code>autoAccept</code> basado en reglas y el comportamiento complementario en <code>confirmOrder</code>.</li>
+          <li><b>Demora:</b> El campo <code>Demora</code>, que era estático, ahora es configurable, ya sea a través de las reglas en la aceptación automática o a través de un parámetro en la confirmación manual.</li>
+          <li><b>API Específica:</b> A diferencia de <code>pedidosYa</code> que calcula minutos y una fecha ISO, aquí la lógica es más directa, ya que la API de PediGrido espera un valor numérico simple para <code>Demora</code>, que se corresponde con el <code>preparationTime</code> de las reglas.</li>
+          <li><b>Reintentos Mejorados:</b> Se guarda el contexto (Demora) en <code>extraData</code> para asegurar la consistencia en caso de fallos de comunicación.</li>
+      </ul>
+    </div>
+  </div>
+ </details>
+
+<details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/platforms/management/platform/rappi.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        La actualización introduce la lógica de <b>reglas de auto-aceptación</b> y el <b>cálculo de tiempo de preparación</b>, ademas también <b>añade desde cero el método <code>confirmOrder</code></b>. Esto completa el flujo dual (automático/manual) para Rappi, alineando su comportamiento con el de las otras plataformas principales y representando una mejora funcional sustancial.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Importación de Dependencias Adicionales</h5>
+      <p><b>Explicación:</b> Se añade la importación del modelo <code>branchModel</code>, para poder consultar la base de datos y verificar la existencia de reglas de <code>autoAccept</code> a nivel de sucursal y cadena.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ...
+import UUID from '../../../utils/errors/utils';
+import Log from '../../../utils/log';
+import rejectPeyaModel from '../../../models/rejectPeya';
+// ...
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// ...
+import UUID from '../../../utils/errors/utils';
+import Log from '../../../utils/log';
+import rejectPeyaModel from '../../../models/rejectPeya';
+import branchModel from '../../../models/branch'; // <-- DESPUÉS: Se importa el modelo de sucursal para consultar las reglas.
+// ...
+      </code></pre>
+      
+      <h5>2. Modificación del Método <code>receiveOrder</code></h5>
+      <p><b>Explicación:</b> Este método ha sido refactorizado para manejar el flujo de <b>aceptación automática</b>. Ahora, en lugar de aceptar, primero verifica si existen reglas de <code>autoAccept</code>. Si es así, calcula un tiempo de preparación y lo envía como parte de la URL a la API de Rappi.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: La lógica aceptaba la orden si la plataforma estaba configurada para 'receive' y el estado era pendiente.
+// La URL de aceptación era fija (.../take).
+receiveOrder(order) {
+  return new Promise(async (resolve) => {
+    try {
+      if (this.statusResponse.receive) {
+        if (order.statusId === 1) {
+          /* LOGIN  */       
+          const xAuth = this.tokenRappi[order.country];
+          /* SEND CONFIRMED */
+          const options = { /* ... */ };
+          let url =
+            process.env.NODE_ENV == 'production'
+              ? this.baseUrl[order.country] + this.urlConfirmOrders + order.id + '/take'
+              : 'https://microservices.dev.rappi.com' + this.urlConfirmOrders + order.id + '/take';
+          try {
+            await axios.put(url, {}, options);
+            resolve(true);
+          } catch (error) {
+            // ... (manejo de error simple)
+            resolve(false);
+          }           
+        } else resolve(false);
+      } else resolve(false);
+    } catch (error) {
+      // ...
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+receiveOrder(order) {
+  return new Promise(async (resolve) => {
+    try {
+      // DESPUÉS: La condición ahora verifica que la plataforma esté configurada para el ciclo completo y que la orden sea nueva.
+      if (this.statusResponse.receive && this.statusResponse.confirm && order.statusId === 1) {
+        let boolRules = false;
+        // DESPUÉS: Se busca la sucursal y la cadena para acceder a las reglas.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: La lógica de aceptación solo se ejecuta si se encontró una regla.
+        if(boolRules) {
+          // DESPUÉS: Se determina el ID del tiempo de preparación y se calcula el tiempo promedio en minutos.
+          let preparationTime = 1;   
+          if (branchPlatform) {
+            preparationTime = branchPlatform.rules.preparationTime;
+          } else {
+            preparationTime = chainRule.rules.preparationTimeId;
+          }
+          let deliveryTimes = [];
+          deliveryTimes = require('../../../assets/deliveryTimes').generic;
+          let time = deliveryTimes.find(r => r.id.toString() === preparationTime);
+                    
+          let timeMins = (time.maxMinutes + time.minMinutes )/2;   
+           /* LOGIN  */       
+          const xAuth = this.tokenRappi[order.country];
+          /* SEND CONFIRMED */
+          const options = { /* ... */ };
+          // DESPUÉS: El tiempo de preparación calculado ('timeMins') se concatena directamente al final de la URL.
+          let url =
+            process.env.NODE_ENV == 'production'
+              ? this.baseUrl[order.country] + this.urlConfirmOrders + order.id + '/take/'+timeMins
+              : 'https://microservices.dev.rappi.com' + this.urlConfirmOrders + order.id + '/take/'+timeMins;
+          try {
+            await axios.put(url, {}, options);
+            resolve(true);
+          } catch (error) {
+            // ... (manejo de error sin cambios funcionales)
+            resolve(false);
+          }
+        } else resolve(false)    
+      } else resolve(false);
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló receiveOrder rappi', order: order, platform: 'Rappi' });
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+
+      <h5>3. Creación del Nuevo Método <code>confirmOrder</code></h5>
+      <p><b>Explicación:</b> Antes, la clase <code>Rappi</code> no tenía un método <code>confirmOrder</code>. La creación de este método alinea a Rappi con el comportamiento del resto de las plataformas, permitiendo la aceptación de órdenes que no fueron procesadas automáticamente.</p>
+      <b>Código Nuevo (Método Completo):</b>
+      <pre><code class="language-javascript">
+// DESPUÉS: Se añade el método 'confirmOrder' que antes no existía.
+confirmOrder(order, deliveryTimeId) {
+  try {
+    return new Promise(async (resolve) => {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      // DESPUÉS: Se verifica si la plataforma está configurada para enviar confirmaciones.
+      if(this.statusResponse.confirm) {
+        let boolRules = false;
+        // DESPUÉS: Se replica la misma lógica de búsqueda de reglas de auto-aceptación.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: La llamada a la API solo se ejecuta si NO se encontró una regla de auto-aceptación.
+        if(!boolRules) {
+          // DESPUÉS: Se calcula el tiempo de preparación, pero usando el 'deliveryTimeId' que viene del POS.
+          let deliveryTimes = [];
+          deliveryTimes = require('../../../assets/deliveryTimes').generic;
+          let time = deliveryTimes.find(r => r.id.toString() === deliveryTimeId);
+          
+          let timeMins = (time.maxMinutes + time.minMinutes )/2;
+      
+          /* LOGIN  */       
+          const xAuth = this.tokenRappi[order.country];
+          /* SEND CONFIRMED */
+          const options = { /* ... */ };
+          // DESPUÉS: Se construye y envía el payload a la API de Rappi con el tiempo calculado en la URL.
+          let url =
+            process.env.NODE_ENV == 'production'
+              ? this.baseUrl[order.country] + this.urlConfirmOrders + order.id + '/take/'+timeMins
+              : 'https://microservices.dev.rappi.com' + this.urlConfirmOrders + order.id + '/take/'+timeMins;
+          try {
+            await axios.put(url, {}, options);
+            resolve(true);
+          } catch (error) {
+            // ... (manejo de error y registro para reintento)
+            resolve(false);
+          }   
+        }
+        else resolve(false);  
+      }
+      else resolve(false);
+    });
+  }
+  catch (error) {
+    Log.saveError(error, { message: 'Falló confirmOrder rappi', order: order, branchId: branchId, platform: 'Platform' });   
+    resolve(false);
+  }
+}
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>Cambios en la integración con Rappi:</p>
+      <ul>
+          <li><b>Funcionalidad <code>confirmOrder</code> Añadida:</b> Se ha creado desde cero el flujo de confirmación manual, lo que representa una nueva capacidad para la integración con Rappi.</li>
+          <li><b>Aceptación Condicional:</b> Se implementa el flujo dual (automático vs. manual) basado en reglas de <code>autoAccept</code>.</li>
+          <li><b>Tiempo de Preparación en la URL:</b> La lógica se adapta a la API específica de Rappi, que requiere el tiempo de preparación como parte de la ruta de la URL.</li>
+      </ul>
+    </div>
+  </div>
+ </details>
+
+<details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/platforms/management/platform/thirdParty.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <ul>
+          <li><b>Implementación del Sistema de Reglas:</b> Se introduce la lógica de <code>auto-aceptación</code> configurable a nivel de cadena y sucursal, permitiendo un flujo de confirmación automático y dinámico.</li>
+          <li><b>Refactorización del Manejo de Errores:</b> Se estandariza y simplifica el manejo de errores en todas las llamadas a APIs externas. En lugar de devolver objetos de error complejos, los métodos ahora "silencian" el error (después de loguearlo) y devuelven un <code>false</code>, simplificando el código que los consume.</li>
+      </ul>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Importación de Dependencias Adicionales</h5>
+      <p><b>Explicación:</b> Se añade la importación del modelo <code>branchModel</code> para poder consultar la base de datos y verificar la existencia de reglas de <code>autoAccept</code> configuradas para la sucursal o la cadena.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ...
+import CustomError from '../../../utils/errors/customError';
+import { APP_BRANCH, APP_PLATFORM } from '../../../utils/errors/codeError';
+import Log from '../../../utils/log';
+// ...
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// ...
+import CustomError from '../../../utils/errors/customError';
+import { APP_BRANCH, APP_PLATFORM } from '../../../utils/errors/codeError';
+import branchModel from '../../../models/branch'; // <-- DESPUÉS: Se importa el modelo de sucursal para consultar las reglas.
+import Log from '../../../utils/log';
+// ...
+      </code></pre>
+      
+      <h5>2. Modificación del Método <code>receiveOrder</code></h5>
+      <p><b>Explicación:</b> Este método ahora tiene una doble responsabilidad. Si existen reglas de <code>autoAccept</code>, intenta <b>confirmar</b> la orden directamente. Si no hay reglas y la plataforma está configurada solo para "recibir", ejecuta la lógica original de notificar la recepción.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: El método solo notificaba la recepción de la orden si 'statusResponse.receive' era true.
+receiveOrder(order) {
+  return new Promise(async (resolve) => {
+    try {
+      if (this.statusResponse.receive) {
+        if (order.statusId === 1) {
+          if (this.token) {
+            // ... llamada axios.post a this.urlReceive
+            resolve(true);
+          } else if (this.authData) {
+            // ... llamada axios.post a this.urlReceive
+            resolve(true);
+          }
+        } else resolve(false);
+      } else resolve(false);
+    } catch (error) {
+      // ...
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+receiveOrder(order) {
+  return new Promise(async (resolve) => {
+    try {
+      // DESPUÉS: La condición principal ahora verifica si la plataforma está configurada para el ciclo completo de confirmación.
+      if (this.statusResponse.receive && this.statusResponse.confirm && order.statusId === 1) {
+        let boolRules = false;
+        // DESPUÉS: Se busca la sucursal y la cadena para acceder a las reglas de auto-aceptación.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: Si se encuentra una regla, se ejecuta el flujo de ACEPTACIÓN AUTOMÁTICA.
+        if(boolRules) { 
+          // DESPUÉS: Se calcula el tiempo de preparación ('Demora') a partir de las reglas.
+          let preparationTime = 1;   
+          if (branchPlatform) {
+             preparationTime = branchPlatform.rules.preparationTime;
+          } else {
+            preparationTime = chainRule.rules.preparationTimeId;
+          }
+          let deliveryTimes = require('../../../assets/deliveryTimes').generic;
+          let time = deliveryTimes.find(r => r.id.toString() === preparationTime);
+          // DESPUÉS: Se realiza la llamada a la API externa, pero al endpoint de CONFIRMACIÓN ('this.urlConfirmed').
+          if (this.token) {
+            const body = { Token: this.token, IdPedido: order.id, Demora: time.id };
+            const url = `${this.baseUrl}${this.urlConfirmed}`;
+            await axios.post(url, body, headers);
+            resolve(true);
+          } else if (this.authData) {
+            // ... (lógica similar con authData)
+            resolve(true);
+          }
+        }
+        // DESPUÉS: Se añade esta condición para mantener el comportamiento original si la plataforma solo está configurada para recibir.
+        if(!this.statusResponse.confirm){
+          if (this.statusResponse.receive && this.token) {
+            // ... (lógica original de llamada a 'this.urlReceive')
+            resolve(true);
+          } // ...
+        } else resolve(false);  
+      } else resolve(false);
+    } catch (error) {
+      // ...
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+
+      <h5>3. Modificación del Método <code>confirmOrder</code></h5>
+      <p><b>Explicación:</b> Este método ahora maneja el flujo de <b>aceptación manual</b>. Solo notificará a la API externa si la orden <b>NO</b> fue aceptada automáticamente en el paso anterior.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: El método realizaba la llamada de confirmación incondicionalmente si 'statusResponse.confirm' era true.
+confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      if (this.statusResponse.confirm) {
+        if (this.token) {
+          // ... llamada axios.post a this.urlConfirmed
+          resolve(true);
+        } else if (this.authData) {
+          // ... llamada axios.post a this.urlConfirmed
+          resolve(true);
+        }
+      } else resolve(false);
+    } catch (error) {
+      // ...
+      resolve(err); // Devolvía un objeto de error complejo.
+    }
+  });
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      if (this.statusResponse.confirm) {
+        let boolRules = false;
+        // DESPUÉS: Se replica la misma lógica de búsqueda de reglas de auto-aceptación.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: La llamada a la API solo se ejecuta si NO se encontró una regla de auto-aceptación.
+        if(!boolRules) { 
+          if (this.token) {
+            // ... (lógica original de llamada a 'this.urlConfirmed')
+            resolve(true);
+          } else if (this.authData) {
+            // ... (lógica original de llamada a 'this.urlConfirmed')
+            resolve(true);
+          }
+        } else resolve(false) // Si ya se auto-aceptó, no se hace nada.
+      } else resolve(false)      
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló confirmOrder 2 thirdParty ' + order.id, /*...*/ });
+      // DESPUÉS: El manejo de errores se simplifica. Se loguea el error y siempre se resuelve con 'false'.
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+
+      <h5>4. Refactorización del Manejo de Errores y Limpieza de Código</h5>
+      <p><b>Explicación:</b> Este cambio se aplica a todos los métodos que realizan llamadas <code>axios</code> (<code>dispatchOrder</code>, <code>deliveryOrder</code>, <code>branchRejectOrder</code>). Se estandariza el manejo de errores para que sea más simple y consistente.</p>
+      <b>Código Anterior (Ejemplo en <code>dispatchOrder</code>):</b>
+      <pre><code class="language-javascript">
+// ...
+} catch (error) {
+  Log.saveError(error, { /*...*/ });
+  if (!error) error = '';
+  const msg = 'Failed to send the dispatched status.';
+  // ANTES: Se creaba un objeto de error complejo y se resolvía la promesa con él.
+  const err = new CustomError(APP_PLATFORM.DISPATCH, msg, this.uuid, { /*...*/ });
+  resolve(err);
+}
+// ...
+      </code></pre>
+      <b>Código Nuevo (Ejemplo en <code>dispatchOrder</code>):</b>
+      <pre><code class="language-javascript">
+// ...
+} catch (error) {
+  Log.saveError(error, { /*...*/ });
+  // DESPUÉS: Se loguea el error y la promesa siempre se resuelve con 'false'.
+  resolve(false);
+}
+// ...
+      </code></pre>
+      <p>Adicionalmente, se eliminaron las asignaciones de respuesta de <code>axios</code> a variables <code>res</code> que no se utilizaban, limpiando el código.</p>
+
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>Los cambios en la clase <code>ThirdParty</code>:</p>
+      <ul>
+          <li><b>Integración del Sistema de Reglas:</b> Se ha adaptado completamente al nuevo sistema de <code>autoAccept</code> y cálculo de <code>Demora</code>, con la flexibilidad añadida para soportar flujos de solo-recepción.</li>
+          <li><b>Estandarización del Manejo de Errores:</b> Se ha refactorizado todo el manejo de errores delegando los detalles al log y devolviendo siempre un booleano.</li>
+          <li><b>Flujo de Confirmación:</b> El método <code>receiveOrder</code> ahora es capaz de confirmar directamente un pedido si las reglas lo indican, haciendo el proceso más eficiente.</li>
+      </ul>
+    </div>
+  </div>
+ </details>
+
+<details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/platforms/management/platform/uberEats.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        La actualización de la integración de Uber Eats con el nuevo estándar, siguiendo el patrón casi idéntico al de <code>Pedidos Ya</code>. Se introduce la lógica de <b>rauto-aceptación</b> y el <b>cálculo del tiempo de preparación</b>. Además, se estandariza el manejo de errores.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Importación de Dependencias Adicionales</h5>
+      <p><b>Explicación:</b> Se añade la importación de <code>branchModel</code> y <code>rejectPeyaModel</code>. <code>branchModel</code> para consultar las nuevas reglas de <code>autoAccept</code>, mientras que <code>rejectPeyaModel</code> se utiliza para el sistema de reintentos de notificaciones.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ...
+import NewsStateSingleton from '../../../utils/newsState';
+import orderModel from '../../../models/order';
+import FormData from 'form-data';
+import Log from '../../../utils/log';
+// ...
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// ...
+import NewsStateSingleton from '../../../utils/newsState';
+import orderModel from '../../../models/order';
+import branchModel from '../../../models/branch'; // <-- DESPUÉS: Se importa el modelo de sucursal para consultar las reglas.
+import rejectPeyaModel from '../../../models/rejectPeya'; // <-- DESPUÉS: Se importa el modelo para reintentos.
+import FormData from 'form-data';
+import Log from '../../../utils/log';
+// ...
+      </code></pre>
+      
+      <h5>2. Modificación del Método <code>receiveOrder</code></h5>
+      <p><b>Explicación:</b> Este método ha sido refactorizado para manejar el flujo de <b>aceptación automática</b>. Ahora verifica si existen reglas de <code>autoAccept</code> y, si es así, calcula un tiempo de preparación dinámico para enviarlo en el campo <code>ready_for_pickup_time</code> a la API de Uber Eats.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: La lógica aceptaba la orden si la plataforma estaba configurada para ello, enviando un 'ready_for_pickup_time: null'.
+async receiveOrder(order) {
+  return new Promise(async (resolve) => {
+    try {
+      if (this.statusResponse.receive && this.statusResponse.confirm) {
+        if (order.statusId === 1) {
+          let fullOrder = await orderModel.findOne({ 'order.id': order.id });
+          let body = {
+            "ready_for_pickup_time": null,
+            "external_id": "external_id",
+            "accepted_by": "Grido"
+          };
+          const headersConfig = { /* ... */ };
+          let url = `${this._platform.credentials.data.baseUrl}/v1/delivery/order/${fullOrder.order.oldId}/accept`;
+          try {
+            await axios.post(url, body, headersConfig);
+            resolve(true);
+          } catch (error) {
+            // ... (manejo de error simple)
+            resolve(false);
+          }       
+        } else resolve(false);
+      } else resolve(false);
+    } catch (error) {
+      // ...
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+async receiveOrder(order) {
+  return new Promise(async (resolve) => {
+    try {
+      // DESPUÉS: La condición principal ahora verifica que la plataforma esté configurada para el ciclo completo y que la orden sea nueva.
+      if (this.statusResponse.receive && this.statusResponse.confirm && order.statusId === 1) {           
+        let boolRules = false;
+        // DESPUÉS: Se busca la sucursal y la cadena para acceder a las reglas de auto-aceptación.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: La lógica de aceptación solo se ejecuta si se encontró una regla.
+        if(boolRules) {
+          // DESPUÉS: Se determina el ID del tiempo de preparación y se calcula la hora exacta en que el pedido estará listo.
+          let preparationTime = 1;   
+          if (branchPlatform) {
+            preparationTime = branchPlatform.rules.preparationTime;
+          } else {
+            preparationTime = chainRule.rules.preparationTimeId;
+          }
+          let deliveryTimes = [];
+          deliveryTimes = require('../../../assets/deliveryTimes').generic;
+          let time = deliveryTimes.find(r => r.id.toString() === preparationTime);
+          
+          let timeMins = (time.maxMinutes + time.minMinutes )/2;
+          const readyForPickup = new Date();
+          readyForPickup.setMinutes(readyForPickup.getMinutes() +  Math.round(timeMins));
+
+          let fullOrder = await orderModel.findOne({ 'order.id': order.id });
+       
+          // DESPUÉS: El 'ready_for_pickup_time' en el body ahora contiene la hora calculada en formato ISO.
+          let body = {
+            "ready_for_pickup_time": readyForPickup.toISOString(),
+            "external_id": "external_id",
+            "accepted_by": "Grido"
+          };
+          const headersConfig = { /* ... */ };
+          let url = `${this._platform.credentials.data.baseUrl}/v1/delivery/order/${fullOrder.order.oldId}/accept`;
+          try {
+            await axios.post(url, body, headersConfig);
+            resolve(true);
+          } catch (error) {
+            Log.saveError(error, { message: 'Falló peticion confirm Uber' + order.id, platform: 'UberEats' });
+            // DESPUÉS: Si la llamada falla, se guarda el tiempo calculado para futuros reintentos.
+            await rejectPeyaModel.create({
+              url: url,
+              platformId: 4,
+              orderId: order.id,
+              'extraData.readyForPickup': readyForPickup.toISOString()
+            });
+            resolve(false);
+          }   
+        } else resolve(false);                          
+      } else resolve(false);
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló receiveConfirmOrder Uber ' + order.id, platform: 'UberEats' });
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+
+      <h5>3. Modificación del Método <code>confirmOrder</code></h5>
+      <p><b>Explicación:</b> Este método ahora maneja el flujo de <b>aceptación manual</b>. Solo notificará a la API de Uber Eats si la orden <b>NO</b> fue aceptada automáticamente, y utilizará el <code>deliveryTimeId</code> proporcionado por el POS para calcular el tiempo de preparación.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: El método solo actualizaba el estado interno y no realizaba ninguna llamada a la API externa.
+async confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      resolve(false);
+    } catch (error) {
+      // ...
+      resolve(err); // Devolvía un objeto de error complejo.
+    }
+  });
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+async confirmOrder(order, deliveryTimeId) {
+  return new Promise(async (resolve) => {
+    try {
+      const state = NewsStateSingleton.stateByCod('confirm');
+      await this.updateOrderState(order, state);
+      // DESPUÉS: Se añade la lógica para verificar si debe actuar.
+      if(this.statusResponse.confirm) {
+        let boolRules = false;
+        // DESPUÉS: Se busca si existen reglas de auto-aceptación.
+        const currentBranch = await branchModel.findOne({ branchId : order.branchId }).populate("chain");
+        const branchPlatform = currentBranch.platforms.find( /* ... */ );
+        const chainRule = currentBranch.chain.platformRules.find( /* ... */ );
+        if(branchPlatform || chainRule)
+          boolRules = true;
+        // DESPUÉS: La llamada a la API solo se ejecuta si NO se encontró una regla de auto-aceptación.
+        if(!boolRules) {       
+          // DESPUÉS: Se calcula el tiempo de preparación, pero usando el 'deliveryTimeId' que viene del POS.
+          let deliveryTimes = [];
+          deliveryTimes = require('../../../assets/deliveryTimes').generic;
+          let time = deliveryTimes.find(r => r.id.toString() === deliveryTimeId);
+          
+          let timeMins = (time.maxMinutes + time.minMinutes )/2;
+      
+          let fullOrder = await orderModel.findOne({ 'order.id': order.id });
+
+          const readyForPickup = new Date();
+            readyForPickup.setMinutes(readyForPickup.getMinutes() +  Math.round(timeMins));
+          let body = {
+            "ready_for_pickup_time": readyForPickup.toISOString(),
+            "external_id": "external_id",
+            "accepted_by": "Grido"
+          };
+          const headersConfig = { /* ... */ };
+          let url = `${this._platform.credentials.data.baseUrl}/v1/delivery/order/${fullOrder.order.oldId}/accept`;
+          try {
+            await axios.post(url, body, headersConfig);
+            resolve(true);
+          } catch (error) {
+            // ... (manejo de error mejorado, igual que en receiveOrder)
+            resolve(false);
+          }   
+        } else resolve(false);                   
+      } else resolve(false);        
+    } catch (error) {
+      Log.saveError(error, { message: 'Falló confirmOrder Uber ' + order.id, /*...*/ });
+      // DESPUÉS: El manejo de errores se simplifica. Se loguea el error y siempre se resuelve con 'false'.
+      resolve(false);
+    }
+  });
+}
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>Cambios en la integración con <code>uberEats.js</code>.</p>
+      <ul>
+          <li><b>Aceptación Condicional y Flujo:</b> Se implementa el sistema de <code>autoAccept</code> basado en reglas y el comportamiento complementario en <code>confirmOrder</code>.</li>
+          <li><b>Cálculo de Tiempo de Preparación:</b> El campo <code>ready_for_pickup_time</code>, que antes era nulo, ahora se configura, permitiendo a los tenants especificar sus propios tiempos de preparación para Uber Eats.</li>
+          <li><b>Manejo de Errores Estandarizado:</b> Se ha refactorizado el método <code>confirmOrder</code> para eliminar el manejo de errores personalizado y alinearlo con el nuevo estándar de <code>resolve(false)</code>.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+            
+      </section>
+
+    <section id="service-two" class="service-section">
+      <h2>Servicio: CONCENTRADOR</h2>
+    
+  
+  <details class="component-card" >
+    <summary class="component-header">
+      <h3>api/src/controllers/branch.js</h3>
+    </summary>
+    <div class="component-body">
+        <h4>Análisis General</h4>
+        <p>
+            Esta actualización, como parte de la iniciativa <b>TENANT</b>, introduce cambios estructurales significativos en el controlador de sucursales. El propósito principal es evolucionar el sistema de una operación mono-región con configuraciones estáticas a una arquitectura <b>multi-región y configurable dinámicamente</b>. Esta transformación es fundamental para permitir que el sistema opere de manera coherente en diferentes zonas horarias y con configuraciones personalizadas para cada "Cadena" (tenant).
+        </p>
+        <p>Los cambios se centran en dos pilares:</p>
+        <ol>
+            <li>La refactorización completa del planificador de tareas (Crons) para que sea consciente de las zonas horarias, creando planificaciones de ejecución personalizadas para cada país.</li>
+            <li>La introducción de una nueva funcionalidad de "Reglas de Plataforma", que permite una gestión más granular de los parámetros operativos (como tiempos de preparación) a nivel de sucursal.</li>
+        </ol>
+        <p>
+            Adicionalmente, se han realizado mejoras de robustez en la lógica de negocio, como la preservación de datos durante las actualizaciones y el refinamiento del proceso de confirmación de pedidos, para asegurar que las nuevas funcionalidades se asienten sobre una base sólida y confiable.
+        </p>
+        
+        <h4>Cambios Detallados</h4>
+
+        <h5>1. Dinamización del Planificador de Tareas (Crons)</h5>
+        <p><b>Explicación:</b> Se reemplaza la lógica de cron jobs con horarios fijos por un sistema dinámico. Ahora, el código primero consulta todos los países en la base de datos y, para cada uno, programa las tareas de <code>enviarEstadoPedidosYa</code> y <code>enviarEstadoRappi</code>. Esto se hace calculando el horario UTC correspondiente a partir de la zona horaria (tzo) de cada país, lo que permite que las tareas se ejecuten a la hora local correcta, independientemente de dónde se encuentren.</p>
+        <b>Código Anterior:</b>
+        <pre><code class="language-javascript">
+// ANTES: Los horarios estaban fijos en UTC, lo que solo funcionaba correctamente para una zona horaria.
+async function cronPeya(baseUrl) {
+  // ...
+  // Ejemplo de horario fijo:
+  cron.schedule('2 2,13,14,15 * * *', async () => await enviarEstadoPedidosYa());
+  // ...
+  cron.schedule('16 14 * * *', async () => await enviarEstadoRappi());
+}
+        </code></pre>
+        <b>Código Nuevo:</b>
+        <pre><code class="language-javascript">
+// DESPUÉS: El planificador es ahora dinámico y multi-región.
+async function cronPeya(baseUrl) {
+  // ... (otros crons que no dependen de la hora local)
+
+  // 1. Se definen los horarios locales deseados para la ejecución de las tareas.
+  const pedidosYaTimes = [
+    { hour: 23, minute: 2 }, { hour: 10, minute: 2 }, { hour: 10, minute: 32 },
+    { hour: 11, minute: 2 }, { hour: 11, minute: 32 }, { hour: 12, minute: 2 },
+  ];
+  const rappiTimes = [ { hour: 11, minute: 16 } ];
+
+  // 2. Se obtienen todos los países y sus zonas horarias de la base de datos.
+  let countries = await countryModel.find({});
+  // 3. Se itera sobre cada país para crear planificaciones personalizadas.
+  for (const country of countries) {
+    const tzo = parseFloat(country.tzo); // Se obtiene la zona horaria (ej. -3).
+
+    // 4. Se crean los crons para PedidosYa para el país actual.
+    for (const pedidosYaTime of pedidosYaTimes) {
+      // 5. Se convierte la hora local a UTC usando la nueva función 'toUTC'.
+      const { hour: h, minute: m } = toUTC(pedidosYaTime.hour, pedidosYaTime.minute, tzo);
+      const cronExp = `${m} ${h} * * *`; // Se genera la expresión cron en UTC.
+      // 6. Se planifica la tarea, pasando el nombre del país como parámetro.
+      cron.schedule(cronExp, async () => await enviarEstadoPedidosYa(country.country));
+    }
+    
+    // 7. Se crean los crons para Rappi (lógica idéntica).
+    for (const rappiTime of rappiTimes) {
+      const { hour: h, minute: m } = toUTC(rappiTime.hour, rappiTime.minute, tzo);
+      const cronExp = `${m} ${h} * * *`;    
+      cron.schedule(cronExp, async () => await enviarEstadoRappi(country.country));
+    }
+  }
+}
+
+// Nueva función helper para la conversión de zona horaria.
+function toUTC(localHour, localMinute, tzo) {
+  // Calcula la hora UTC. El '+ 24' y el módulo '%' manejan correctamente los cruces de día.
+  let utcHour = (localHour - tzo + 24) % 24;
+  return { hour: utcHour, minute: localMinute };
+}
+        </code></pre>
+
+        <h5>2. Parametrización de Funciones de Sincronización</h5>
+        <p><b>Explicación:</b> Las funciones <code>enviarEstadoRappi</code> y <code>enviarEstadoPedidosYa</code> fueron modificadas para aceptar un parámetro <code>country</code>. Este cambio es fundamental, ya que permite que las funciones filtren las sucursales y utilicen las credenciales y URLs de API correctas para el país que se está procesando en el cron job, en lugar de tener "Argentina" como valor fijo.</p>
+        <b>Código Anterior:</b>
+        <pre><code class="language-javascript">
+// ANTES: La función operaba sobre un conjunto fijo de sucursales (Argentina) y el log era genérico.
+async function enviarEstadoPedidosYa() {
+  // ...
+  let branchesToOpen = await model.find({
+    // ...
+    "address.country": "Argentina",
+    // ...
+  });
+  // ...
+  await openClosedLogModel.create({
+    Ident: "PedidosYaCRON",
+    // ...
+  });
+}
+        </code></pre>
+        <b>Código Nuevo:</b>
+        <pre><code class="language-javascript">
+// DESPUÉS: La función es ahora genérica y opera sobre el país que recibe como parámetro.
+async function enviarEstadoPedidosYa(country) {
+  // ...
+  let branchesToOpen = await model.find({
+    // El filtro de país ahora es dinámico, basado en el parámetro de entrada.
+    "address.country": country,
+    // ...
+  });
+  // ...
+  await openClosedLogModel.create({
+    // El identificador del log ahora incluye el país para una mejor trazabilidad.
+    Ident: "PedidosYaCRON " + country,
+    // ...
+  });
+}
+        </code></pre>
+
+        <h5>3. Creación de Endpoint para Gestión de Reglas</h5>
+        <p><b>Explicación:</b> Se introduce un nuevo endpoint y la función <code>updatePlatformsRule</code>. Esta característica permite actualizar de forma aislada las "reglas" de una plataforma para una sucursal (tiempo de preparación, aceptación automática, etc.). Esto da más flexibilidad para gestionar la configuración de cada local sin tener que modificar la sucursal completa.</p>
+        <b>Código Anterior:</b>
+        <pre><code class="language-javascript">
+// ANTES: No existía una función para esta lógica. El export del módulo no la incluía.
+module.exports = {
+  // ...
+  getStatus
+};
+        </code></pre>
+        <b>Código Nuevo:</b>
+        <pre><code class="language-javascript">
+// DESPUÉS: Se añade una nueva función para manejar la lógica de actualización de reglas.
+const updatePlatformsRule = async (req, res) => {   
+  try {
+    // Busca la sucursal por su ID para asegurar que existe.
+    const currentBranch = await model.findOne({ _id: req.params.id, deletedAt: null });
+    if (!currentBranch) {
+      return res.status(404).json({ error: "Branch not found" });
+    }
+
+    // Limpia las reglas existentes para asegurar que solo se apliquen las nuevas.
+    for (const platform of currentBranch.platforms) {
+      platform.rules = null;
+    }
+
+    // Itera sobre las reglas recibidas en el body y las asigna a la plataforma correspondiente.
+    for (const element of req.body) {      
+      const platform = currentBranch.platforms.find(p => p.platform.toString() === element.platformObjectId);
+      if (platform) {
+        platform.rules = {
+          preparationTime: element.selected,
+          autoAccept: true,
+          internalCode: element.internalCode
+        };
+      }
+    }
+
+    // Persiste el objeto 'platforms' actualizado en la base de datos.
+    await model.updateOne(
+      { _id: req.params.id, deletedAt: null },
+      { $set: { platforms: currentBranch.platforms } }
+    );
+
+    return res.status(200).json({}).end();
+  } catch (error) { /* ... */ }
+};
+
+// ... en module.exports se añade la nueva función
+module.exports = {
+  // ...
+  getStatus,
+  updatePlatformsRule // Se exporta para que la ruta pueda usarla.
+};
+        </code></pre>
+
+        <h5>4. Preservación de Reglas en Actualizaciones</h5>
+        <p><b>Explicación:</b> La función <code>updateOne</code>, que maneja la actualización general de una sucursal, se ha mejorado para preservar las <code>rules</code> de las plataformas existentes. Antes, si se actualizaba una sucursal, estas reglas podían perderse; ahora se mantienen, asegurando que no haya pérdida de configuración.</p>
+        <b>Código Anterior:</b>
+        <pre><code class="language-javascript">
+// ANTES: La actualización de 'params' no consideraba preservar sub-documentos existentes como 'rules'.
+const updateOne = async (req, res) => {
+  try {
+    // ...
+    let rappiActiveBak = params.rappiActive;     
+    delete params.rappiActive;  
+    let branchActual = await model.findOneAndUpdate({ _id: req.params.id, deletedAt: null }, params, { returnDocument: "after" });
+    // ...
+  } catch (error) { /* ... */ }
+};
+        </code></pre>
+        <b>Código Nuevo:</b>
+        <pre><code class="language-javascript">
+// DESPUÉS: Se añade un bloque para preservar las reglas existentes durante una actualización.
+const updateOne = async (req, res) => {
+  try {
+    // ... (código de validación existente)
+    
+    let rappiActiveBak = params.rappiActive;     
+    delete params.rappiActive;  
+
+    // Se añade este bloque para preservar las reglas existentes al actualizar una sucursal.
+    if (params.platforms) {
+      // Itera sobre las plataformas que vienen en la solicitud de actualización.
+      params.platforms = params.platforms.map(p => {
+        // Busca la configuración de la plataforma existente en la base de datos.
+        const existing = currentBranch.platforms.find(ep => ep.platform.toString() === p.platform);
+        // Retorna el objeto de la plataforma de la solicitud, pero asegurándose de copiar las 'rules' que ya existían.
+        return { ...p, rules: existing?.rules };
+      });
+    }
+
+    let branchActual = await model.findOneAndUpdate({ _id: req.params.id, deletedAt: null }, params,{ returnDocument: "after" });
+    // ... (resto de la función)
+  } catch (error) { /* ... */ }
+};
+        </code></pre>
+
+        <h5>5. Refactorización del Proceso de Reintentos (rejectOrdersPeya)</h5>
+        <p><b>Explicación:</b> La función <code>rejectOrdersPeya</code> (que re-procesa confirmaciones) ha sido refactorizada. El bloque <code>try-catch</code> ahora envuelve todo el proceso para un mejor manejo de errores. Además, datos que antes eran fijos (como <code>acceptanceTime</code> o <code>Demora</code>) ahora se obtienen dinámicamente del objeto <code>reject.extraData</code>, haciendo el proceso más preciso.</p>
+        <b>Código Anterior:</b>
+        <pre><code class="language-javascript">
+// ANTES: Se usaban valores fijos (null, 1) y el manejo de errores era menos robusto.
+async function rejectOrdersPeya() {
+  let rejects = await rejectPeyaModel.find({send: false});
+  for (const reject of rejects) {
+    try {
+      // ...
+      let bodyConfirm = { acceptanceTime: null, /* ... */ };
+      // ...
+      let body = { "ready_for_pickup_time": null, /* ... */ };
+      // ...
+      const body = { Demora: 1, /* ... */ };
+      // ...
+    } catch (error) {
+      // El error se manejaba dentro del bucle, con lógica de actualización duplicada.
+    }
+  }
+}
+        </code></pre>
+        <b>Código Nuevo:</b>
+        <pre><code class="language-javascript">
+// DESPUÉS: Se usan datos dinámicos y el manejo de errores es más limpio.
+async function rejectOrdersPeya() {  
+  try {
+    let rejects = await rejectPeyaModel.find({send: false});
+    for (const reject of rejects) {    
+      switch (reject.platformId) {
+        case 1: { // PEDIDOSYA
+          let bodyConfirm = {
+            // Utiliza el tiempo de preparación dinámico guardado en extraData.
+            acceptanceTime: reject.extraData.readyForPickup,
+            // ...
+          };
+          break;
+        }
+        case 4: { // UBEREATS
+          let body = {
+            // Utiliza el tiempo de preparación dinámico.
+            "ready_for_pickup_time": reject.extraData.readyForPickup,
+            // ...
+          };
+          break;
+        }
+        case 7: { // RAPIBOY
+          const body = {
+            // Utiliza la demora dinámica.
+            Demora: reject.extraData.Demora,
+            // ...
+          };
+          break;
+        }
+      }    
+    }  
+  } catch (error) {
+    // El bloque try/catch ahora envuelve todo el proceso para un manejo de errores más global.
+    console.log(error)
+    Log.saveError(error, { message: 'Falló reject order concentrador-P', platform: 'Concentrador', reject: reject });   
+    await rejectPeyaModel.findOneAndUpdate({ _id: reject.id }, { send:true });
+  }  
+}
+        </code></pre>
+
+      <div class="analysis-box">
+        <h4>Conclusión del análisis</h4>
+        <p>Esta serie de cambios representa un avance significativo hacia un sistema más escalable, configurable y robusto.</p>
+        <ul>
+            <li><b>Escalabilidad Multi-Región:</b> La dinamización del sistema de Crons es un pilar fundamental para la expansión del servicio a nuevos mercados, asegurando un comportamiento consistente y correcto en diferentes zonas horarias.</li>
+            <li><b>Flexibilidad (TENANT):</b> La introducción de "Reglas de Plataforma" y la lógica para gestionarlas y preservarlas sienta las bases para una configuración multi-tenant, donde cada "Cadena" podrá tener sus propias políticas operativas.</li>
+            <li><b>Robustez:</b> Las mejoras en la lógica de confirmación de pedidos y en los procesos de actualización hacen que el sistema sea más confiable y menos propenso a la pérdida de datos o a errores por valores hardcodeados.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+      
+      
+      <details class="component-card" >
+    <summary class="component-header">
+      <h3>api/src/controllers/branch.js commit 9eb54fe4852ee90b3d3c9bb87eba456545fab7f7</h3>
+    </summary>
+    <div class="component-body">
+        <h4>Análisis General</h4>
+        <p>
+          Esta actualización consiste en una refactorización del código responsable de la planificación de tareas programadas (cron jobs). El propósito principal de los cambios es simplificar la estructura del código y mejorar su legibilidad al consolidar lógica que estaba previamente dividida en dos funciones (<code>cronPeya</code> y <code>scheduleCountryCrons</code>) en una sola.
+        </p>
+        <p>
+          Funcionalmente, el comportamiento del sistema no se altera; las mismas tareas se siguen programando con la misma lógica y horarios dinámicos basados en la zona horaria de cada país. Sin embargo, la modificación representa una mejora en la calidad y mantenibilidad del código, haciendo que el flujo de ejecución para la inicialización de los crons sea más lineal y fácil de seguir para los desarrolladores.
+        </p>
+        
+        <h4>Cambios Detallados</h4>
+
+        <h5>1. Consolidación de la Lógica del Planificador de Tareas</h5>
+        <p><b>Explicación:</b> Se ha eliminado la función auxiliar <code>scheduleCountryCrons</code>. Toda su lógica, que incluye la definición de los horarios de ejecución y los bucles que crean las tareas programadas para PedidosYa y Rappi, se ha movido directamente dentro de la función principal <code>cronPeya</code>. Adicionalmente, se ha corregido la llamada a las funciones de envío para pasar <code>country.country</code> (el nombre del país como string) en lugar del objeto <code>country</code> completo, asegurando que se pase el tipo de dato esperado.</p>
+        <b>Código Anterior:</b>
+        <pre><code class="language-javascript">
+// ANTES: La lógica estaba dividida. 'cronPeya' obtenía los países y llamaba a 'scheduleCountryCrons' en un bucle.
+async function cronPeya(baseUrl) {
+  // ... (otros crons)
+
+  let countries = await countryModel.find({});
+  for (const country of countries) {
+    const tzo = parseFloat(country.tzo);
+    scheduleCountryCrons(country, tzo); // Se llamaba a la función auxiliar
+  }
+}
+
+// La función auxiliar contenía la lógica de planificación real.
+function scheduleCountryCrons(country, tzo) {
+  const pedidosYaTimes = [ /* ... */ ];
+  const rappiTimes = [ /* ... */ ];
+
+  for (const pedidosYaTime of pedidosYaTimes) {
+    const { hour: h, minute: m } = toUTC(pedidosYaTime.hour, pedidosYaTime.minute, tzo);  
+    const cronExp = `${m} ${h} * * *`;
+    // Se pasaba el objeto 'country' completo
+    cron.schedule(cronExp, async () => await enviarEstadoPedidosYa(country));
+  }
+  
+  for (const rappiTime of rappiTimes) {
+    const { hour: h, minute: m } = toUTC(rappiTime.hour, rappiTime.minute, tzo);
+    const cronExp = `${m} ${h} * * *`;
+    // Se pasaba el objeto 'country' completo
+    cron.schedule(cronExp, async () => await enviarEstadoRappi(country));
+  }
+}
+        </code></pre>
+        <b>Código Nuevo:</b>
+        <pre><code class="language-javascript">
+// DESPUÉS: Toda la lógica se consolida dentro de 'cronPeya', eliminando la función auxiliar.
+async function cronPeya(baseUrl) {
+  // ... (otros crons)
+
+  // La definición de los horarios ahora está directamente en la función principal.
+  const pedidosYaTimes = [
+    { hour: 23, minute: 2 },
+    { hour: 10, minute: 2 },
+    { hour: 10, minute: 32 },
+    { hour: 11, minute: 2 },
+    { hour: 11, minute: 32 },
+    { hour: 12, minute: 2 },
+  ];
+  const rappiTimes = [
+    { hour: 11, minute: 16 },
+  ];
+
+  // El bucle que obtiene los países y programa las tareas ahora está unificado.
+  let countries = await countryModel.find({});
+  for (const country of countries) {
+    const tzo = parseFloat(country.tzo);
+
+    for (const pedidosYaTime of pedidosYaTimes) {
+      const { hour: h, minute: m } = toUTC(pedidosYaTime.hour, pedidosYaTime.minute, tzo);
+      const cronExp = `${m} ${h} * * *`;    
+      // Corrección: Se pasa 'country.country' (string) en lugar del objeto 'country' completo.
+      cron.schedule(cronExp, async () => await enviarEstadoPedidosYa(country.country));   
+    }
+    
+    for (const rappiTime of rappiTimes) {
+      const { hour: h, minute: m } = toUTC(rappiTime.hour, rappiTime.minute, tzo);        
+      const cronExp = `${m} ${h} * * *`;    
+      // Corrección: Se pasa 'country.country' (string) en lugar del objeto 'country' completo.
+      cron.schedule(cronExp, async () => await enviarEstadoRappi(country.country));       
+    }
+  }
+}
+        </code></pre>
+
+      <div class="analysis-box">
+        <h4>Conclusión del análisis</h4>
+        <p>
+          La funcionalidad principal del archivo no ha cambiado. Sigue programando las mismas tareas con la misma lógica. Sin embargo, la modificación representa una mejora en la calidad del código a través de la refactorización.
+        </p>
+        <ul>
+            <li><b>Simplicidad y Legibilidad:</b> Al consolidar la lógica de programación de crons en una sola función, el código se vuelve más simple, directo y fácil de seguir.</li>
+            <li><b>Mantenibilidad:</b> Tener toda la lógica junta facilita futuras modificaciones, ya que solo hay un lugar que editar.</li>
+            <li><b>Corrección Menor:</b> Se ha corregido un bug sutil al asegurar que se pase el tipo de dato correcto (<code>string</code> en lugar de <code>object</code>) a las funciones de envío de estado.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+      
+      
+      
+      <details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/controllers/delivery.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Esta actualización, como parte de la iniciativa <b>TENANT</b>, introduce una nueva capacidad de consulta de datos en el controlador de <code>delivery</code>. El propósito principal de este cambio es crear un endpoint que proporcione una vista agregada y estructurada de todos los "tiempos de entrega" activos, agrupados por plataforma.
+      </p>
+      <p>
+        La nueva función <code>findTimesAll</code> utiliza el pipeline de agregación de MongoDB para transformar los datos crudos en un formato optimizado para el consumo de interfaces de usuario. Esta funcionalidad es un componente clave para la nueva pantalla de configuración de "Reglas de Plataforma", ya que le proporciona las opciones de tiempos de preparación que un usuario puede seleccionar para cada plataforma de manera centralizada.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Creación de la Función Agregada <code>findTimesAll</code></h5>
+      <p><b>Explicación:</b> Se ha añadido una nueva función asíncrona, <code>findTimesAll</code>, diseñada para devolver una lista completa y estructurada de todos los "tiempos de entrega" activos. A diferencia de la función <code>findTimes</code> existente (que busca por un ID de plataforma específico), esta nueva función utiliza una consulta de agregación compleja en MongoDB para obtener todos los tiempos, unirlos con la información de su plataforma correspondiente, y agruparlos para que el frontend pueda renderizar fácilmente las opciones de configuración por plataforma.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: No existía una función para obtener todos los tiempos de entrega de forma agregada.
+// El export del módulo solo contenía las funciones CRUD básicas y findTimes.
+module.exports = {
+  findAll,
+  findById,
+  saveOne,
+  updateOne,
+  deleteOne,
+  findTimes
+};
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// DESPUÉS: Se añade la nueva función 'findTimesAll' y se exporta.
+const findTimesAll = async (req, res) => {
+  try {
+    // Utiliza el pipeline de agregación de MongoDB para transformar los datos.
+    const result = await modelTimes.aggregate([
+      // 1. Etapa de Filtrado: Selecciona solo los documentos de tiempos de entrega que están activos.
+      { $match: { isActive: true } },
+      // 2. Etapa de Unión (JOIN): Une los documentos con la colección 'platforms'.
+      {
+        $lookup: {
+          from: "platforms", // La colección con la que se va a unir.
+          localField: "platformId", // El campo en la colección 'deliveryTime'.
+          foreignField: "internalCode", // El campo en la colección 'platforms'.
+          as: "platformData" // El nombre del nuevo array que contendrá los datos unidos.
+        }
+      },
+      // 3. Etapa de Descompresión: Deconstruye el array 'platformData' para tener un documento por cada plataforma unida.
+      { $unwind: "$platformData" },
+      // 4. Etapa de Agrupación: Agrupa todos los documentos por el ID de la plataforma.
+      {
+        $group: {
+          _id: "$platformId", // Agrupa por el ID de la plataforma.
+          internalCode: { $first: "$platformId" },
+          platformName: { $first: "$platformData.name" }, // Obtiene el nombre de la plataforma.
+          platformObjectId: { $first: "$platformData._id" }, // Obtiene el ObjectId de la plataforma.
+          // 5. Crea un array 'messages' con todos los tiempos de entrega para esa plataforma.
+          messages: {
+            $push: {
+              id: "$id",
+              description: "$description"
+            }
+          },
+          // 6. Añade campos por defecto para la UI, como 'active' y 'selected'.
+          active: { $first: { $literal: false } },
+          selected: { $first: { $literal: 0 } }
+        }
+      },
+      // 7. Etapa de Proyección: Elimina el campo '_id' generado por $group para limpiar la salida.
+      { $project: { _id: 0 } },
+      // 8. Etapa de Ordenamiento: Ordena los resultados alfabéticamente por el nombre de la plataforma.
+      { $sort: { platformName: 1 } }
+    ]);
+    return res.status(200).json(result).end();
+  } catch (error) {
+    return res.status(400).json({ error: msg }).end();
+  }
+};
+
+// ...
+
+module.exports = {
+  findAll,
+  findById,
+  saveOne,
+  updateOne,
+  deleteOne,
+  findTimes,
+  findTimesAll // Se exporta la nueva función para que pueda ser utilizada por una ruta de la API.
+};
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La adición de la función <code>findTimesAll</code> en <code>api/src/controllers/delivery.js</code> es una mejora estratégica que habilita la nueva funcionalidad de gestión de reglas.</p>
+      <ul>
+          <li><b>Optimización para el Frontend:</b> Proporciona los datos en un formato pre-procesado y agrupado, lo que simplifica significativamente la lógica requerida en la interfaz de usuario para construir la pantalla de configuración de reglas de plataforma.</li>
+          <li><b>Eficiencia:</b> Realiza una única consulta compleja a la base de datos en lugar de múltiples consultas simples, lo cual es más eficiente.</li>
+          <li><b>Escalabilidad:</b> La consulta está diseñada para escalar a medida que se añadan más plataformas y tiempos de entrega, proporcionando siempre una vista agregada y ordenada.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+      
+      <details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/controllers/news.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Esta actualización, como parte de la iniciativa <b>TENANT</b>, mejora la funcionalidad de búsqueda de "novedades" (órdenes y eventos) dentro del sistema. El cambio principal es la adición de un nuevo criterio de filtro por <b>Cadena</b> (<code>chain</code>).
+      </p>
+      <p>
+        Este ajuste es fundamental para una arquitectura <b>multi-tenant</b>, ya que permite a los usuarios del sistema (por ejemplo, operadores de una cadena específica) visualizar únicamente la información relevante para su propia cadena. Al filtrar las novedades por <code>chain</code>, se aísla la información y se proporciona una vista de datos contextualizada, mejorando la usabilidad y la seguridad de la información.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Adición de Filtro por Cadena (Chain) en la Búsqueda</h5>
+      <p><b>Explicación:</b> Se ha modificado la función <code>search</code> para que acepte y procese un nuevo parámetro, <code>chain</code>, desde el cuerpo de la solicitud. Si se proporciona un valor para <code>chain</code> (diferente de "0", que se usa como valor por defecto para "todos"), se añade una nueva condición al objeto de consulta de MongoDB. Esta condición filtra los documentos de la colección <code>news</code> para que solo se devuelvan aquellos cuyo campo <code>extraData.chain</code> coincida con el valor proporcionado.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: La función de búsqueda no incluía un filtro por 'chain'.
+const search = async (req, res) => {
+  const search = req.body.search;
+  const country = req.body.country;
+  const platform = parseInt(req.body.platform);
+  const order = parseInt(req.body.order);
+  // ...
+  const data = {
+    ...(search != ''
+      ? { /* ... */ }
+      : {}),
+    ...(platform != '' ? { 'order.platformId': platform } : {}),
+    ...(status != '' ? { /* ... */ } : {}),
+    // ...
+  };
+  // ...
+};
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// DESPUÉS: Se añade la lógica para procesar y aplicar el filtro por 'chain'.
+const search = async (req, res) => {
+  const search = req.body.search;
+  const country = req.body.country;
+  const platform = parseInt(req.body.platform);
+  // 1. Se lee el nuevo parámetro 'chain' del cuerpo de la solicitud y se convierte a string.
+  const chain = req.body.chain.toString();
+  const order = parseInt(req.body.order);
+  // ...
+  const data = {
+    ...(search != ''
+      ? { /* ... */ }
+      : {}),
+    ...(platform != '' ? { 'order.platformId': platform } : {}),
+    // 2. Se añade una nueva condición de filtro al objeto de consulta de MongoDB.
+    //    Si 'chain' es diferente de '0', se aplica el filtro por 'extraData.chain'.
+    ...(chain != '0' ? { 'extraData.chain': chain } : {}),
+    ...(status != '' ? { /* ... */ } : {}),
+    // ...
+  };
+  // ...
+};
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La modificación en <code>api/src/controllers/news.js</code> es un paso clave hacia la implementación de una arquitectura <b>TENANT</b>.</p>
+      <ul>
+          <li><b>Aislamiento de Datos:</b> Permite segmentar la visualización de novedades por cadena, lo cual es esencial para que los distintos clientes (tenants) solo vean la información que les pertenece.</li>
+          <li><b>Mejora de Usabilidad:</b> Facilita a los usuarios la tarea de encontrar información relevante al permitirles acotar las búsquedas a su propio entorno operativo.</li>
+          <li><b>Impacto Mínimo y Controlado:</b> El cambio se ha implementado de forma aditiva y no afecta las búsquedas existentes que no utilicen el nuevo filtro.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+      
+      <details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/models/branch.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Esta actualización, como parte de la iniciativa <b>TENANT</b>, modifica el esquema de la base de datos para las sucursales (<code>branchSchema</code>). El cambio consiste en añadir un nuevo campo, <code>rules</code>, a la configuración de cada plataforma asociada a una sucursal.
+      </p>
+      <p>
+        Este ajuste en el modelo de datos es un prerrequisito fundamental para la nueva funcionalidad de "Reglas de Plataforma". Al proporcionar un lugar en la base de datos para almacenar estas configuraciones, se habilita la capacidad de que cada sucursal anule o personalice las reglas operativas (como tiempos de preparación) que podrían ser heredadas de la "Cadena" (tenant). Esto permite una gestión mucho más granular y flexible de las operaciones de cada tienda.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Adición del Campo 'rules' al Esquema</h5>
+      <p><b>Explicación:</b> Se ha añadido un nuevo campo llamado <code>rules</code> de tipo <code>Object</code> al sub-documento dentro del array <code>platforms</code>. Este campo está diseñado para almacenar un objeto de configuración con las reglas específicas que una sucursal aplicará para una plataforma determinada, permitiendo anular cualquier configuración por defecto que provenga de la Cadena.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: La configuración de cada plataforma para una sucursal no tenía un campo para reglas personalizadas.
+// ...
+    platforms: [
+      {
+        platform: { type: Schema.Types.ObjectId, ref: platformSchema },
+        branchReference: { type: Object },
+        branchIdReference: { type: String },
+        StateAPI: { type: Boolean },
+        branchName: { type: Object },
+        progClosed: [{ close: Date, open: Date, description: String }],
+        isActive: { type: Boolean, default: true }
+      }
+    ],
+// ...
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// DESPUÉS: Se añade el campo 'rules' para almacenar configuraciones a nivel de sucursal-plataforma.
+// ...
+    platforms: [
+      {
+        platform: { type: Schema.Types.ObjectId, ref: platformSchema },
+        branchReference: { type: Object },
+        branchIdReference: { type: String },
+        StateAPI: { type: Boolean },
+        branchName: { type: Object },
+        progClosed: [{ close: Date, open: Date, description: String }],
+        isActive: { type: Boolean, default: true },
+        // Se añade un nuevo campo 'rules' de tipo Objeto.
+        // Este campo contendrá las configuraciones específicas como 'preparationTime'.
+        rules: { type: Object }
+      }
+    ],
+// ...
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La modificación en el esquema <code>branchSchema</code> es un cambio estructural clave que habilita la nueva funcionalidad de gestión de reglas.</p>
+      <ul>
+          <li><b>Persistencia de Datos:</b> Proporciona el soporte en la base de datos necesario para almacenar la nueva capa de configuración introducida en el controlador <code>branch.js</code> (<code>updatePlatformsRule</code>).</li>
+          <li><b>Flexibilidad:</b> Permite que cada sucursal tenga configuraciones distintas para la misma plataforma, lo cual es esencial para operaciones que varían según la ubicación o capacidad del local.</li>
+          <li><b>Base para TENANT:</b> Este cambio es un paso crucial para el modelo <b>TENANT</b>, ya que establece la estructura que permitirá a las sucursales anular las reglas por defecto definidas a nivel de <code>Chain</code>.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+      
+      <details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/models/chain.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Esta actualización, como parte de la iniciativa <b>TENANT</b>, modifica el esquema de la base de datos para las cadenas (<code>chainSchema</code>). El cambio consiste en añadir un nuevo campo, <code>platformRules</code>, diseñado para almacenar configuraciones por defecto a nivel de la cadena completa.
+      </p>
+      <p>
+        Este ajuste en el modelo de datos es el complemento directo a la modificación realizada en <code>branch.js</code>. Establece la estructura jerárquica de la configuración: las reglas se pueden definir a nivel de "tenant" (la Cadena) y luego ser anuladas o personalizadas a nivel de "unidad" (la Sucursal). Esta capacidad de establecer configuraciones por defecto a un nivel superior es un pilar fundamental para una gestión eficiente y centralizada en un entorno multi-tenant.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Adición del Campo 'platformRules' al Esquema</h5>
+      <p><b>Explicación:</b> Se ha añadido un nuevo campo llamado <code>platformRules</code> de tipo <code>Object</code> al esquema <code>chainSchema</code>. Este campo está diseñado para almacenar un objeto que contendrá las reglas de configuración por defecto para las diferentes plataformas de delivery, aplicables a todas las sucursales que pertenezcan a esta cadena.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: El esquema de la cadena no tenía un campo para almacenar reglas de plataforma por defecto.
+const chainSchema = new Schema({
+    chain: {
+        type: String,
+        maxlength: 100,
+        required: true
+    },
+    // ... (otros campos)
+    avatar: {
+        type: String
+    }
+}, {
+    strict: false,
+    timestamps: true
+});
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// DESPUÉS: Se añade el campo 'platformRules' para establecer configuraciones a nivel de tenant.
+const chainSchema = new Schema({
+    chain: {
+        type: String,
+        maxlength: 100,
+        required: true
+    },
+    // ... (otros campos)
+    avatar: {
+        type: String
+    },
+    // Se añade un nuevo campo 'platformRules' de tipo Objeto.
+    // Su valor por defecto es un array vacío (aunque podría ser un objeto {}).
+    // Almacenará las reglas por defecto para las plataformas de esta cadena.
+    platformRules: {
+        type: Object,
+        default: []
+    },
+}, {
+    strict: false,
+    timestamps: true
+});
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La modificación en el esquema <code>chainSchema</code> es esencial para completar la arquitectura de configuración jerárquica de la iniciativa <b>TENANT</b>.</p>
+      <ul>
+          <li><b>Centralización de la Configuración:</b> Permite a los administradores definir reglas operativas (como tiempos de preparación) una sola vez a nivel de cadena, en lugar de tener que replicarlas en cada sucursal.</li>
+          <li><b>Herencia de Configuración:</b> Establece el nivel superior de la jerarquía de reglas. Las sucursales ahora pueden heredar estas configuraciones por defecto, y solo necesitan definir sus propias <code>rules</code> si requieren una excepción.</li>
+          <li><b>Eficiencia Operativa:</b> Simplifica drásticamente la incorporación y gestión de nuevas sucursales, ya que heredarán automáticamente las políticas operativas de su cadena matriz.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+      
+
+<details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/routes/branches.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Esta actualización, como parte de la iniciativa <b>TENANT</b>, expone la nueva lógica de negocio para la gestión de reglas de plataforma a través de un nuevo endpoint de API. El cambio en este archivo es la adición de una nueva ruta, <code>PUT /branches/updatePlatformsRule/:id</code>, que sirve como punto de entrada para que los sistemas externos (como un panel de administración) puedan interactuar con la nueva funcionalidad.
+      </p>
+      <p>
+        La creación de esta ruta es el paso final para hacer accesible la gestión de reglas de plataforma. Se ha incluido una documentación completa en formato Swagger, lo cual es una buena práctica que asegura que el nuevo endpoint sea fácilmente descubrible y utilizable por los desarrolladores que consumen la API.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Adición de Ruta para Actualizar Reglas de Plataforma</h5>
+      <p><b>Explicación:</b> Se ha añadido una nueva definición de ruta que responde al método <code>PUT</code> en la URL <code>/branches/updatePlatformsRule/:id</code>. Esta ruta está directamente asociada a la función <code>updatePlatformsRule</code> que fue implementada en el controlador <code>branch.js</code>. Esto permite que una aplicación cliente envíe una solicitud HTTP para actualizar las reglas de una sucursal específica, identificada por su <code>id</code> en la URL.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: El archivo de rutas terminaba con la definición de la ruta genérica '/:id'.
+// ...
+router
+.route("/:id")
+.get(controller.findById)
+.put(controller.updateOne)
+.delete(controller.deleteOne);
+
+module.exports = router;
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// DESPUÉS: Se añade la nueva ruta y su documentación Swagger.
+// ...
+router
+  .route("/:id")
+  .get(controller.findById)
+  .put(controller.updateOne)
+  .delete(controller.deleteOne);
+  
+/**
+ * @swagger
+ * /branches/updatePlatformsRule/{id}:
+ * put:
+ * parameters:
+ * - in: path
+ * name: id 
+ * schema:
+ * type: string  
+ * description: El ObjectID de branch.
+ * requestBody:
+ * content:
+ * application/json:
+ * schema:
+ * $ref: '#/components/schemas/ReqBranch'
+ * summary: Busca y actualiza rules.
+ * tags:
+ * - Branches
+ * security:
+ * - bearerAuth: []
+ * responses:
+ * 200:
+ * description: Respuesta exitosa
+ */
+// 1. Se define una nueva ruta que escucha en el path "/updatePlatformsRule/:id".
+router
+  .route("/updatePlatformsRule/:id")
+  // 2. Se asocia el método HTTP PUT a la función 'updatePlatformsRule' del controlador.
+  .put(controller.updatePlatformsRule)
+
+module.exports = router;
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La modificación en <code>api/src/routes/branches.js</code> completa el ciclo de desarrollo de la nueva funcionalidad de gestión de reglas.</p>
+      <ul>
+          <li><b>Exposición de la Funcionalidad:</b> Hace que la lógica de negocio implementada en el controlador sea accesible desde el exterior a través de una API RESTful bien definida.</li>
+          <li><b>Documentación Clara:</b> La inclusión de la documentación Swagger asegura que el nuevo endpoint esté claramente definido para los consumidores de la API, detallando su propósito, parámetros, y el formato esperado para las solicitudes y respuestas.</li>
+          <li><b>Habilitador para el Frontend:</b> Este cambio es el habilitador directo para que se pueda construir una interfaz de usuario que permita a los operadores gestionar las reglas de plataforma de manera centralizada.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+
+      <details class="component-card">
+  <summary class="component-header">
+    <h3>api/src/routes/delivery.js</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Esta actualización, como parte de la iniciativa <b>TENANT</b>, expone la nueva lógica de negocio para la consulta agregada de tiempos de entrega a través de un nuevo endpoint de API. El cambio en este archivo es la adición de una nueva ruta, <code>GET /delivery/timesall</code>, que sirve como punto de entrada para que los sistemas externos puedan consumir los datos estructurados que proporciona la función <code>findTimesAll</code>.
+      </p>
+      <p>
+        La creación de esta ruta es el paso final para habilitar la nueva pantalla de configuración de "Reglas de Plataforma", ya que proporciona a la interfaz de usuario los datos necesarios (todos los tiempos de entrega disponibles, agrupados por plataforma) para renderizar las opciones de selección para el usuario.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Adición de Ruta para Obtener Todos los Tiempos de Entrega</h5>
+      <p><b>Explicación:</b> Se ha añadido una nueva definición de ruta que responde al método <code>GET</code> en la URL <code>/delivery/timesall</code>. Esta ruta está directamente asociada a la función <code>findTimesAll</code> que fue implementada en el controlador <code>delivery.js</code>. Esto permite que una aplicación cliente envíe una solicitud HTTP para obtener la lista completa y agrupada de todos los tiempos de entrega activos en el sistema.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+// ANTES: Solo existía una ruta para obtener tiempos de entrega por un ID de plataforma específico.
+// ...
+/**
+* @swagger
+* /delivery/times/{platformId}:
+* get:
+* // ...
+*/
+router.route("/times/:id").get(controller.findTimes);
+
+/**
+* @swagger
+* /delivery/{id}:
+* get:
+* // ...
+*/
+// ...
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+// DESPUÉS: Se añade la nueva ruta y su documentación Swagger para obtener todos los tiempos.
+// ...
+/**
+* @swagger
+* /delivery/times/{platformId}:
+* get:
+* // ...
+*/
+router.route("/times/:id").get(controller.findTimes);
+
+/**
+* @swagger
+* /delivery/timesall:
+* get:
+* summary: Retorna tiempos de envio.
+* tags:
+* - Delivery
+* security:
+* - bearerAuth: []
+* responses:
+* 200:
+* description: Respuesta exitosa
+* content:
+* application/json:
+* schema:
+* type: array
+* items:
+* $ref: '#/components/schemas/DeliveryTime'
+*/
+// 1. Se define una nueva ruta que escucha en el path "/timesall".
+router.route("/timesall").get(controller.findTimesAll);
+
+/**
+* @swagger
+* /delivery/{id}:
+* get:
+* // ...
+*/
+// ...
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La modificación en <code>api/src/routes/delivery.js</code> completa el ciclo de desarrollo de la nueva funcionalidad de consulta agregada de tiempos de entrega.</p>
+      <ul>
+          <li><b>Exposición de la Funcionalidad:</b> Hace que la lógica de negocio implementada en el controlador (<code>findTimesAll</code>) sea accesible desde el exterior a través de una API RESTful.</li>
+          <li><b>Documentación Clara:</b> La inclusión de la documentación Swagger asegura que el nuevo endpoint esté claramente definido para los consumidores de la API.</li>
+          <li><b>Habilitador para el Frontend:</b> Este cambio es el habilitador directo para que la interfaz de usuario de "Reglas de Plataforma" pueda obtener y mostrar las opciones de tiempos de preparación disponibles para cada plataforma, permitiendo al usuario final realizar la configuración deseada.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+      
+      
+</section>
+
+
+
+    <section id="service-three" class="service-section">
+      <h2>Servicio: BACKOFFICE</h2>
+
+<details class="component-card" >
+  <summary class="component-header">
+    <h3>app/.../status/status.component.html & .ts</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Este conjunto de modificaciones, como parte de las mejoras del Dashboard Status, introduce una nueva capacidad de filtrado y visualización para las órdenes entrantes. El objetivo principal es permitir a los operadores filtrar las órdenes por "Cadena" y mostrar esta información directamente en la tabla de resultados. Esto mejora significativamente la usabilidad del dashboard al ofrecer un control más granular sobre los datos y una visibilidad directa de la cadena asociada a cada pedido, facilitando la supervisión y el análisis contextualizado.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Nueva Propiedad de Filtro para Cadena en el Componente</h5>
+      <p><b>Explicación:</b> Se añadió una nueva propiedad en el componente TypeScript (<code>status.component.ts</code>) para almacenar el valor de la cadena seleccionada por el usuario en el filtro. Esta propiedad servirá como el modelo (<code>[(ngModel)]</code>) para el nuevo control <code>select</code> en el HTML.</p>
+      <b>Código Anterior (status.component.ts):</b>
+      <pre><code class="language-javascript">
+public objectkeys = Object.keys;
+public search: string = "";
+public platform: number = 0;
+public searchStatus: number = 0;
+public searchBranch: string = "";
+public searchSKU: string = "";
+      </code></pre>
+      <b>Código Nuevo (status.component.ts):</b>
+      <pre><code class="language-javascript">
+public objectkeys = Object.keys;
+public search: string = "";
+public platform: number = 0;
+public chain: number = 0; // DESPUÉS: Nueva propiedad 'chain' inicializada en 0 para el filtro.
+public searchStatus: number = 0;
+public searchBranch: string = "";
+public searchSKU: string = "";
+      </code></pre>
+
+      <h5>2. Ajuste del Layout de Filtros en la Interfaz de Usuario</h5>
+      <p><b>Explicación:</b> Se modificó la distribución de las columnas (<code>col-md-*</code>) en la fila de filtros de "Pedidos Entrantes" (<code>status.component.html</code>). Esto se realizó para hacer espacio de manera organizada al nuevo filtro de "Cadena" y mantener una distribución visual coherente con los filtros existentes.</p>
+      <b>Código Anterior (status.component.html):</b>
+      <pre><code class="language-html">
+&lt;div class="row"&gt;
+  &lt;div class="col-12 col-md mb-2"&gt;
+    &lt;div class="input-group"&gt;
+      &lt;div class="input-group-prepend"&gt;
+        &lt;div class="input-group-text"&gt;&lt;i class="fa fa-search"&gt;&lt;/i&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;input type="text" class="form-control form-control-sm" placeholder="N° Orden" [(ngModel)]="search" min="1" (keydown.enter)="generateNewsDashboard()" /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="col-12 col-md mb-2"&gt;
+    &lt;input type="text" class="form-control form-control-sm" placeholder="N° Sucursal" [(ngModel)]="searchBranch" min="1" (keydown.enter)="generateNewsDashboard()" /&gt;
+  &lt;/div&gt;
+  &lt;!-- ... más filtros ... --&gt;
+  &lt;div class="col-12 col-md-1"&gt;
+    &lt;div class="form-group"&gt;
+      &lt;select name="" id="" class="form-control form-control-sm" [(ngModel)]="turboBoolean"&gt;
+        &lt;option value="turbo"&gt;Turbo&lt;/option&gt;
+        &lt;option value="regular"&gt;No Turbo&lt;/option&gt;
+        &lt;option value="all"&gt;Todas las sucursales&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="col-12 col-md mb-2"&gt;
+    &lt;button class="btn btn-sm btn-block btn-primary" (click)="generateNewsDashboard()"&gt;
+      &lt;i class="fa fa-sync"&gt;&lt;/i&gt;&lt;span class="d-none d-lg-inline"&gt; Actualizar&lt;/span&gt;
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+      </code></pre>
+      <b>Código Nuevo (status.component.html):</b>
+      <pre><code class="language-html">
+&lt;div class="row"&gt;
+  &lt;div class="col-12 col-md-2 mb-2"&gt; &lt;!-- Columna ajustada --&gt;
+    &lt;div class="input-group"&gt;
+      &lt;!-- ... --&gt;
+      &lt;input type="text" class="form-control form-control-sm" placeholder="N° Orden" [(ngModel)]="search" min="1" (keydown.enter)="generateNewsDashboard()" /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="col-12 col-md-1 mb-2"&gt; &lt;!-- Columna ajustada --&gt;
+    &lt;input type="text" class="form-control form-control-sm" placeholder="N° Sucursal" [(ngModel)]="searchBranch" min="1" (keydown.enter)="generateNewsDashboard()" /&gt;
+  &lt;/div&gt;
+  &lt;!-- ... más filtros con columnas ajustadas ... --&gt;
+&lt;/div&gt;
+&lt;div class="row"&gt; &lt;!-- Se introduce una nueva fila para filtros adicionales. --&gt;
+  &lt;!-- ... otros filtros ... --&gt;
+  &lt;div class="col-12 col-md-2"&gt; &lt;!-- Nueva columna para el filtro de Cadena. --&gt;
+    &lt;select class="form-control form-control-sm" [(ngModel)]="chain"&gt; &lt;!-- Vinculado a la nueva propiedad 'chain'. --&gt;
+      &lt;option value="0"&gt;Todas las Cadenas&lt;/option&gt;
+      &lt;option *ngFor="let chain of chains" [value]="chain.chain"&gt;
+        {{ chain.chain }}
+      &lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+  &lt;div class="col-12 col-md-2 mb-2"&gt;
+    &lt;button class="btn btn-sm btn-block btn-primary" (click)="generateNewsDashboard()"&gt;
+      &lt;i class="fa fa-sync"&gt;&lt;/i&gt;&lt;span class="d-none d-lg-inline"&gt; Actualizar&lt;/span&gt;
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+      </code></pre>
+
+      <h5>3. Inclusión del Filtro de Cadena en la Petición al Backend</h5>
+      <p><b>Explicación:</b> Para que el backend pueda filtrar los pedidos por la cadena seleccionada, el valor de la propiedad <code>chain</code> del componente ahora se incluye en el objeto de <code>data</code> que se envía a la API de búsqueda (<code>/news/search</code>).</p>
+      <b>Código Anterior (status.component.ts):</b>
+      <pre><code class="language-javascript">
+let data = {
+  search: this.search,
+  platform: this.platform,
+  status: this.searchStatus,
+  branch: this.searchBranch,
+  // ...
+};
+      </code></pre>
+      <b>Código Nuevo (status.component.ts):</b>
+      <pre><code class="language-javascript">
+let data = {
+  search: this.search,
+  platform: this.platform,
+  chain: this.chain, // DESPUÉS: El valor del filtro de cadena se envía al backend.
+  status: this.searchStatus,
+  branch: this.searchBranch,
+  // ...
+};
+      </code></pre>
+
+      <h5>4. Nueva Columna "Cadena" en la Tabla de Pedidos</h5>
+      <p><b>Explicación:</b> Se añadió una nueva columna "Cadena" al encabezado (<code>&lt;thead&gt;</code>) y al cuerpo (<code>&lt;tbody&gt;</code>) de la tabla de pedidos para mostrar esta información directamente.</p>
+      <b>Código Anterior (status.component.html - thead):</b>
+      <pre><code class="language-html">
+&lt;thead&gt;
+  &lt;tr&gt;
+    &lt;th scope="col"&gt;Pais&lt;/th&gt;
+    &lt;th scope="col"&gt;Plataforma&lt;/th&gt;
+    &lt;!-- ... --&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;
+      </code></pre>
+      <b>Código Nuevo (status.component.html - thead):</b>
+      <pre><code class="language-html">
+&lt;thead&gt;
+  &lt;tr&gt;
+    &lt;th scope="col"&gt;Cadena&lt;/th&gt; &lt;!-- DESPUÉS: Nueva columna "Cadena". --&gt;
+    &lt;th scope="col"&gt;Pais&lt;/th&gt;
+    &lt;th scope="col"&gt;Plataforma&lt;/th&gt;
+    &lt;!-- ... --&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;
+      </code></pre>
+      <b>Código Nuevo (status.component.html - tbody):</b>
+       <pre><code class="language-html">
+&lt;tbody&gt;
+  &lt;tr *ngFor="let order of newsDashboard.orders; index as i"&gt;
+    &lt;td&gt;{{ order.extraData.chain }}&lt;/td&gt; &lt;!-- DESPUÉS: Muestra el nombre de la cadena del pedido. --&gt;
+    &lt;td&gt;{{ order.extraData.country }}&lt;/td&gt;
+    &lt;!-- ... --&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+      </code></pre>
+      
+      <h5>5. Ajuste del `colspan`</h5>
+      <p><b>Explicación:</b> Al añadir una nueva columna, es necesario ajustar el atributo <code>colspan</code> en la fila que muestra el mensaje "Sin datos..." para que este se extienda correctamente a lo largo de todas las columnas. El <code>colspan</code> ahora es 12.</p>
+      <b>Código Anterior (status.component.html):</b>
+      <pre><code class="language-html">
+&lt;td *ngIf="newsDashboard.orders.length == 0" class="text-center" colspan="6"&gt;
+  &lt;i class="fa fa-exclamation-circle"&gt;&lt;/i&gt; Sin datos...
+&lt;/td&gt;
+      </code></pre>
+      <b>Código Nuevo (status.component.html):</b>
+      <pre><code class="language-html">
+&lt;td *ngIf="newsDashboard.orders.length == 0" class="text-center" colspan="12"&gt; &lt;!-- DESPUÉS: Ajustado el colspan a 12. --&gt;
+  &lt;i class="fa fa-exclamation-circle"&gt;&lt;/i&gt; Sin datos...
+&lt;/td&gt;
+      </code></pre>
+      
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>Los cambios realizados en <code>status.component.html</code> y <code>status.component.ts</code> en conjunto, mejoran significativamente la capacidad de análisis y filtrado de la vista Dashboard Status.</p>
+      <ul>
+          <li><b>Nuevo Control de Filtrado:</b> Ahora los operadores pueden filtrar los pedidos entrantes por "Cadena", lo que permite una segmentación más precisa de los datos mostrados.</li>
+          <li><b>Mayor Visibilidad de Datos:</b> La adición de la columna "Cadena" en la tabla principal proporciona información crucial de un vistazo, facilitando la identificación rápida del origen del pedido.</li>
+          <li><b>Mejora de la Usabilidad:</b> Al integrar un filtro y una columna tan relevantes, el dashboard se vuelve una herramienta más potente y flexible para la monitorización y gestión operacional, especialmente en un entorno multitenant.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+      
+<details class="component-card" >
+  <summary class="component-header">
+    <h3>
+      app/.../branch.component.html<br>
+      app/.../branch.component.ts<br>
+      app/.../branches.service.ts
+    </h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Este conjunto de modificaciones introduce una funcionalidad cohesiva y completa para la gestión de "Reglas de Negocio" a nivel de sucursal. Los cambios se distribuyen a través de la vista (HTML), la lógica del componente (TypeScript) y el servicio de comunicación (Service), para crear una nueva solapa en la interfaz que permite configurar comportamientos específicos (autoaceptación y tiempo de preparación) para cada plataforma de delivery. La implementación orquesta el flujo completo: desde la presentación de la UI y el control de acceso por permisos, hasta la carga de datos existentes y la persistencia de los nuevos cambios en el backend.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5 style="background-color: #e9ecef; padding: 5px 10px; border-radius: 4px; margin-top: 1.5rem;">Archivo: branch.component.html (La Vista)</h5>
+      
+      <h6>1. Nueva Solapa "Reglas de Negocio"</h6>
+      <p><b>Explicación:</b> Se añadió una nueva pestaña (<code>&lt;mat-tab&gt;</code>) a la interfaz. Esta solapa está deshabilitada condicionalmente y contiene una tabla interactiva para que el usuario pueda activar la autoaceptación y seleccionar un tiempo de preparación para cada plataforma.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-html">
+&lt;!-- ... --&gt;
+      &lt;/app-courier-branch&gt;
+    &lt;/div&gt;
+  &lt;/mat-tab&gt;
+&lt;/mat-tab-group&gt;
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-html">
+&lt;!-- ... --&gt;
+      &lt;/app-courier-branch&gt;
+    &lt;/div&gt;
+  &lt;/mat-tab&gt;
+  &lt;mat-tab [disabled]="!rules" label="Reglas de Negocio"&gt; &lt;!-- DESPUÉS: Nueva pestaña --&gt;
+    &lt;div class="form-group pt-3"&gt;
+      &lt;h5 class="mb-0 mr-3"&gt;Reglas de Negocio por Plataforma&lt;/h5&gt;
+      &lt;hr&gt;
+      &lt;table class="table table-bordered"&gt;
+        &lt;thead class="thead-light"&gt;
+          &lt;tr&gt;
+            &lt;th scope="col" class="border"&gt;Cadena/Regla&lt;/th&gt;
+            &lt;th scope="col" class="border"&gt;Autoaceptación&lt;/th&gt;
+            &lt;th scope="col" class="border"&gt;Tiempo de Preparación&lt;/th&gt;
+          &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          &lt;tr *ngFor="let platform of platformsRule; index as i"&gt;
+            &lt;td&gt;{{ platform.platformName }}&lt;/td&gt;
+            &lt;td&gt;&lt;input type="checkbox" [disabled]="vista=='get'" [checked]="platform.active" (change)="platform.active = !platform.active"&gt;&lt;/td&gt;
+            &lt;td&gt;
+              &lt;select class="form-control form-control-sm"[value]="platform.selected" (change)="platform.selected = $event.target.value" [disabled]="!platform.active || vista=='get'" &gt;
+                &lt;option value="0"&gt;NO&lt;/option&gt;
+                &lt;option *ngFor="let message of platform.messages" [value]="message.id"&gt;
+                  {{ message.description }}
+                &lt;/option&gt;
+                &lt;option class="text-danger font-weight-bold" value="-1"&gt;
+                  Error
+                &lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+    &lt;div class="d-flex justify-content-end"&gt;
+      &lt;button (click)="sendRules()" *ngIf="vista !='get'" type="button" class="btn btn-primary ml-3"&gt;
+        Guardar
+      &lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/mat-tab&gt;
+&lt;/mat-tab-group&gt;
+      </code></pre>
+
+      <h5 style="background-color: #e9ecef; padding: 5px 10px; border-radius: 4px; margin-top: 1.5rem;">Archivo: branch.component.ts (La Lógica)</h5>
+
+      <h6>1. Nuevas Propiedades de Estado</h6>
+      <p><b>Explicación:</b> Se añaden <code>platformsRule</code>, un array para manejar los datos de las reglas en la UI, y <code>rules</code>, una bandera booleana para controlar la visibilidad de la nueva solapa.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+export class BranchComponent implements OnInit {
+  public changesPlatforms = false;
+  // ...
+  public branchPlatform: boolean;
+  public branchCourier: boolean;
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+export class BranchComponent implements OnInit {
+  public platformsRule: any[] = []; // DESPUÉS: Array para almacenar y gestionar las reglas.
+  public changesPlatforms = false;
+  // ...
+  public branchPlatform: boolean;
+  public rules: boolean; // DESPUÉS: Bandera para habilitar/deshabilitar la solapa.
+  public branchCourier: boolean;
+      </code></pre>
+
+      <h6>2. Lógica de Carga y Mapeo en <code>ngOnInit</code></h6>
+      <p><b>Explicación:</b> En la inicialización, el componente ahora llama al servicio para obtener todas las opciones de tiempo de las plataformas y las cruza con las reglas ya existentes en la sucursal, preparando los datos para ser mostrados en la tabla.</p>
+      <b>Código Nuevo (fragmento añadido en <code>ngOnInit</code>):</b>
+      <pre><code class="language-javascript">
+this._platformsService.getPlatformTimesAll().subscribe(data => { 
+  this.platformsRule = data; 
+  let platformTemp = this.dataPlatform.filter(r => r.rules && r.rules.autoAccept); 
+  for (const platformRule of platformTemp) { 
+    const platform = this.platformsRule.find(p => p.internalCode === platformRule.platform.internalCode); 
+    if (platform) { 
+      platform.selected = platform.messages.filter(r => r.id.toString() === platformRule.rules.preparationTime).length > 0 ? platformRule.rules.preparationTime : "-1";
+      platform.active = true;
+    }
+  }
+});
+      </code></pre>
+
+      <h6>3. Control de Acceso por Permisos</h6>
+      <p><b>Explicación:</b> Se verifica si el usuario tiene el permiso "/pages/management/branches/rules" para establecer la bandera <code>this.rules</code> a <code>true</code> y habilitar la solapa.</p>
+      <b>Código Nuevo (fragmento añadido en el bucle de permisos):</b>
+      <pre><code class="language-javascript">
+// ...
+} else if (element == "/pages/management/branches/rules") { 
+  this.rules = true; 
+  if (this.TabIndex == undefined) { 
+    this.TabIndex = 4;
+  }
+}
+      </code></pre>
+
+      <h6>4. Nuevo Método <code>sendRules()</code></h6>
+      <p><b>Explicación:</b> Se implementa el método que se activa con el botón "Guardar". Filtra solo las reglas que el usuario marcó como activas y llama al servicio para persistir los cambios.</p>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+sendRules() {
+  let id = this.route.snapshot.params.id;
+  let platformsRuleTemp = this.platformsRule.filter(r => r.active); 
+  this._branchesService.updatePlatformsRule(id, platformsRuleTemp).subscribe( r => { 
+    Swal.fire(
+      "Guardado!",
+      "Los cambios se guardaron correctamente.",
+      "success"
+    ).then((result) => {
+      this._location.back();
+    });
+  });
+}
+      </code></pre>
+
+      <h5 style="background-color: #e9ecef; padding: 5px 10px; border-radius: 4px; margin-top: 1.5rem;">Archivo: branches.service.ts (El Servicio)</h5>
+
+      <h6>1. Nuevo Método <code>updatePlatformsRule</code></h6>
+      <p><b>Explicación:</b> Se extiende el servicio para incluir un método que se comunica con el nuevo endpoint del backend, enviando una petición <code>HTTP PUT</code> para actualizar las reglas de una sucursal específica.</p>
+       <b>Código Nuevo (fragmento añadido):</b>
+      <pre><code class="language-javascript">
+// ...
+public getBranch(id: any): Observable<Branch> {
+  return this.http.get<Branch>(environment.apiUrl + /branches/${id});
+}
+
+public updatePlatformsRule(id: any, platformsRuleTemp: any[]) { // DESPUÉS: Nuevo método.
+  return this.http.put<any>(environment.apiUrl + /branches/updatePlatformsRule/${id}, platformsRuleTemp); 
+}
+
+public sendOpen(branchForms: any): Observable<any> {
+// ...
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La implementación de la solapa "Reglas de Negocio" representa una característica cohesiva y bien estructurada, delegando responsabilidades claramente entre la vista, el controlador y el servicio.</p>
+      <ul>
+          <li><b>Gestión Centralizada y Granular:</b> Los usuarios pueden ahora definir y modificar reglas de autoaceptación y tiempos de preparación específicos por plataforma y sucursal desde una interfaz unificada.</li>
+          <li><b>Diseño Modular:</b> La separación en una solapa dedicada mejora la organización de la información y la experiencia del usuario.</li>
+          <li><b>Flujo de Datos y Persistencia Clara:</b>
+            <ol style="padding-left: 20px;">
+              <li><b>Carga:</b> El componente (<b>.ts</b>) inicializa los datos combinando un servicio global de tiempos con las reglas existentes de la sucursal.</li>
+              <li><b>Presentación:</b> La vista (<b>.html</b>) renderiza la tabla interactiva en la nueva solapa.</li>
+              <li><b>Guardado:</b> El método <code>sendRules()</code> en el componente (<b>.ts</b>) recopila los datos y llama al servicio (<b>.service.ts</b>).</li>
+              <li><b>Comunicación:</b> El servicio (<b>.service.ts</b>) envía la petición <code>PUT</code> a la API para persistir los cambios.</li>
+            </ol>
+          </li>
+      </ul>
+      <p>Esta característica potencia la flexibilidad operacional y el control sobre cómo cada sucursal gestiona sus pedidos, optimizando la eficiencia en un entorno multitenant.</p>
+    </div>
+  </div>
+</details>
+      
+      <details class="component-card">
+  <summary class="component-header">
+    <h3>
+      app/.../chain/chain.component.html<br>
+      app/.../chain/chain.component.ts<br>
+      app/.../chains/shared/models/chain.ts
+    </h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Este conjunto de modificaciones introduce una nueva funcionalidad integral para la gestión de "Cadenas": una sección de "Configuración por Plataforma". Los cambios se extienden a través del modelo de datos (<code>chain.ts</code>), la lógica del componente (<code>chain.component.ts</code>) y la vista (<code>chain.component.html</code>). El objetivo es permitir a los administradores definir reglas de negocio por defecto (autoaceptación y tiempo de preparación) a nivel de cadena, que luego pueden ser heredadas o personalizadas por las sucursales. Esto establece una base fundamental para la gestión centralizada en un entorno multitenant.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5 style="background-color: #e9ecef; padding: 5px 10px; border-radius: 4px; margin-top: 1.5rem;">Archivo: chain.ts (El Modelo de Datos)</h5>
+      
+      <h6>1. Nueva Propiedad <code>platformRules</code></h6>
+      <p><b>Explicación:</b> Se añadió una nueva propiedad <code>platformRules</code> al modelo <code>Chain</code> para almacenar un array de objetos, donde cada objeto representará las reglas de negocio de una plataforma específica asociadas a esta cadena.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+export class Chain{
+  id: string;
+  chain: string;
+  // ...
+  avatar: string;
+
+  constructor(){
+      this.id = undefined;
+      this.chain = undefined;
+      // ...
+      this.avatar = undefined;
+  }
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+export class Chain{
+  id: string;
+  chain: string;
+  // ...
+  avatar: string;
+  platformRules: any; // DESPUÉS: Nueva propiedad para almacenar las reglas.
+
+  constructor(){
+      this.id = undefined;
+      this.chain = undefined;
+      // ...
+      this.avatar = undefined;
+      this.platformRules = []; // DESPUÉS: Inicialización como un array vacío.
+  }
+}
+      </code></pre>
+
+      <h5 style="background-color: #e9ecef; padding: 5px 10px; border-radius: 4px; margin-top: 1.5rem;">Archivo: chain.component.ts (La Lógica)</h5>
+
+      <h6>1. Importación de Dependencias y Nueva Propiedad</h6>
+      <p><b>Explicación:</b> Se importa <code>PlatformsService</code> para obtener los datos de las plataformas y se declara una nueva propiedad <code>platforms</code> para almacenar estos datos y vincularlos a la UI.</p>
+      <b>Código Nuevo (fragmentos):</b>
+      <pre><code class="language-javascript">
+// ...
+import { PlatformsService } from '../../platforms/shared/services/platforms.service'; // DESPUÉS: Importación del servicio.
+// ...
+export class ChainComponent implements OnInit {
+  // ...
+  public vista: string = '';
+  public platforms: any[] = []; // DESPUÉS: Nuevo array para las reglas.
+
+  constructor(
+    // ...
+    private _chainsService: ChainsService,
+    private _platformsService: PlatformsService, // DESPUÉS: Inyección del servicio.
+    // ...
+  ) { }
+      </code></pre>
+
+      <h6>2. Lógica de Carga y Mapeo en <code>ngOnInit</code></h6>
+      <p><b>Explicación:</b> Al cargar una cadena, el componente ahora obtiene la configuración de todas las plataformas y la cruza con las reglas ya guardadas en la cadena para preseleccionar los valores correctos en la UI.</p>
+      <b>Código Nuevo (fragmento añadido en <code>ngOnInit</code>):</b>
+      <pre><code class="language-javascript">
+this._platformsService.getPlatformTimesAll().subscribe(data => { // DESPUÉS: Llama al servicio de plataformas.
+  this.platforms = data; 
+  for (const platformRule of chain.platformRules) { 
+    const platform = this.platforms.find(p => p.internalCode === platformRule.platformId);
+    if (platform) { 
+      platform.selected = platform.messages.filter(r => r.id.toString() === platformRule.rules.preparationTimeId).length > 0 ? platformRule.rules.preparationTimeId : "-1";
+      platform.active = true;
+    }
+  }
+});
+      </code></pre>
+
+      <h6>3. Procesamiento de Reglas antes de Guardar en <code>onSubmit</code></h6>
+      <p><b>Explicación:</b> Antes de guardar, se procesa el array <code>this.platforms</code> para construir la estructura de datos <code>platformRules</code> que el backend espera, filtrando solo las plataformas activas y con un tiempo válido.</p>
+      <b>Código Nuevo (fragmento añadido en <code>onSubmit</code>):</b>
+      <pre><code class="language-javascript">
+//Seteo la imagen
+chainData.avatar = this.avatar.picture;
+
+chainData.platformRules = this.platforms // DESPUÉS: Adjunta las reglas por plataforma.
+  .filter(p => p.active && p.selected != "0" && p.selected != "-1") // DESPUÉS: Filtra solo las activas/válidas.
+  .map(p => ({ // DESPUÉS: Mapea a la estructura del backend.
+    platformId: p.internalCode,
+    rules: {
+      autoAccept: true,
+      preparationTimeId: p.selected
+    }
+  }));
+
+if(this.chainForm.invalid){
+//...
+      </code></pre>
+
+      <h5 style="background-color: #e9ecef; padding: 5px 10px; border-radius: 4px; margin-top: 1.5rem;">Archivo: chain.component.html (La Vista)</h5>
+
+      <h6>1. Nueva Sección "Configuración por Plataforma"</h6>
+      <p><b>Explicación:</b> Se añadió una nueva sección con una tabla que itera sobre la propiedad <code>platforms</code> del componente, permitiendo al usuario configurar la autoaceptación y el tiempo de preparación para cada plataforma.</p>
+      <b>Código Nuevo (fragmento añadido):</b>
+      <pre><code class="language-html">
+&lt;!-- ... campos anteriores ... --&gt;
+&lt;/div&gt;
+&lt;div class="form-group pt-3"&gt; &lt;!-- DESPUÉS: Nuevo contenedor para la sección. --&gt;
+  &lt;h5 class="mb-0 mr-3"&gt;Configuración por Plataforma&lt;/h5&gt;
+  &lt;hr&gt;
+  &lt;table class="table table-bordered"&gt;
+    &lt;thead class="thead-light"&gt;
+      &lt;tr&gt;
+        &lt;th scope="col" class="border"&gt;Cadena/Regla&lt;/th&gt;
+        &lt;th scope="col" class="border"&gt;Autoaceptación&lt;/th&gt;
+        &lt;th scope="col" class="border"&gt;Tiempo de Preparación&lt;/th&gt;
+      &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;tr *ngFor="let platform of platforms; index as i"&gt;
+        &lt;td&gt;{{ platform.platformName }}&lt;/td&gt;
+        &lt;td&gt;&lt;input type="checkbox" [disabled]="vista=='get'" [checked]="platform.active" (change)="platform.active = !platform.active"&gt;&lt;/td&gt;
+        &lt;td&gt;
+          &lt;select class="form-control form-control-sm"[value]="platform.selected" (change)="platform.selected = $event.target.value" [disabled]="!platform.active || vista=='get'" &gt;
+            &lt;option value="0"&gt;NO&lt;/option&gt;
+            &lt;option *ngFor="let message of platform.messages" [value]="message.id"&gt;
+              {{ message.description }}
+            &lt;/option&gt;
+            &lt;option class="text-danger font-weight-bold" value="-1"&gt;
+              Error
+            &lt;/option&gt;
+          &lt;/select&gt;
+        &lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;
+&lt;div class="d-flex justify-content-between flex-wrap"&gt;
+&lt;!-- ... --&gt;
+      </code></pre>
+      
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La funcionalidad de "Configuración de Reglas por Plataforma a Nivel de Cadena" es una mejora integral que impacta directamente en la flexibilidad operativa y la capacidad de personalización del Backoffice.</p>
+      <ul>
+          <li><b>UI Dinámica e Interactiva:</b> La nueva tabla en <code>chain.component.html</code> proporciona una interfaz intuitiva para gestionar las reglas.</li>
+          <li><b>Orquestación de Datos:</b> El componente <code>chain.component.ts</code> se encarga de cargar, mapear y procesar las interacciones del usuario para generar la estructura de datos <code>platformRules</code> que espera el backend.</li>
+          <li><b>Modelo de Datos Extendido:</b> El modelo <code>chain.ts</code> ahora incluye <code>platformRules</code>, permitiendo que esta nueva información fluya y se persista a través de la aplicación.</li>
+          <li><b>Control Granular:</b> Esta característica permite a los administradores definir políticas de aceptación de pedidos y tiempos de preparación de forma diferenciada para cada plataforma, optimizando la eficiencia de las operaciones.</li>
+      </ul>
+    </div>
+  </div>
+</details>
+
+<details class="component-card">
+  <summary class="component-header">
+    <h3>app/.../platforms/shared/services/platforms.service.ts</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Esta modificación extiende el servicio <code>PlatformsService</code> para incluir una nueva capacidad de consulta. Como parte de la iniciativa de "Configuración de Reglas por Plataforma a Nivel de Cadena", el objetivo principal de este cambio es proporcionar un método eficiente para obtener las configuraciones de tiempo de preparación de <b>todas</b> las plataformas de una sola vez. Esto es crucial para poblar las interfaces de usuario que requieren una visión agregada de estas reglas, optimizando el rendimiento y simplificando la lógica de los componentes frontend.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Nuevo Método <code>getPlatformTimesAll()</code></h5>
+      <p><b>Explicación:</b> Se añadió un nuevo método público <code>getPlatformTimesAll()</code> a la clase <code>PlatformsService</code>. Este método está diseñado para realizar una única petición HTTP <code>GET</code> a un nuevo endpoint del backend, <code>/delivery/timesall</code>. El propósito de este endpoint es devolver una lista completa de todas las plataformas junto con sus opciones de tiempo de preparación disponibles, permitiendo una recuperación de datos centralizada.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+public getPlatformMessages(id: number) : any {
+  return this.http.get<Platform>(environment.apiUrl + `/rejectedMessage/${id}`);
+}
+
+public getPlatformTimes(id: number) : any {
+  return this.http.get<Platform>(environment.apiUrl + `/delivery/times/${id}`);
+}
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+public getPlatformMessages(id: number) : any {
+  return this.http.get<any>(environment.apiUrl + `/rejectedMessage/${id}`); // DESPUÉS: Se ajusta el tipo de retorno a 'any' para consistencia.
+}
+
+public getPlatformTimes(id: number) : any {
+  return this.http.get<any>(environment.apiUrl + `/delivery/times/${id}`); // DESPUÉS: Se ajusta el tipo de retorno a 'any' para consistencia.
+}
+
+public getPlatformTimesAll() : any { // DESPUÉS: Nuevo método público para obtener los tiempos de todas las plataformas.
+  return this.http.get<any>(environment.apiUrl + `/delivery/timesall`); // DESPUÉS: Realiza una petición GET al nuevo endpoint.
+}
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La adición del método <code>getPlatformTimesAll()</code> en <code>platforms.service.ts</code> es un cambio de soporte estratégico dentro de la iniciativa de "Configuración de Reglas por Plataforma a Nivel de Cadena".</p>
+      <ul>
+          <li><b>Optimización del Rendimiento:</b> En lugar de realizar múltiples llamadas a la API (una por cada plataforma), ahora los componentes pueden usar una sola llamada. Esto reduce la latencia de red y la carga en el backend.</li>
+          <li><b>Simplificación de la Lógica del Frontend:</b> Este método abstrae la complejidad de la recuperación de datos, permitiendo que los componentes consumidores se centren en la lógica de negocio y presentación.</li>
+          <li><b>Habilitador de Nuevas Funcionalidades:</b> Es la pieza clave que permite poblar de manera eficiente la nueva tabla de "Configuración por Plataforma" en la vista de detalle de Cadenas.</li>
+      </ul>
+      <p>En conjunto, este cambio es un ejemplo de cómo la capa de servicios evoluciona para dar soporte eficiente a las nuevas y crecientes demandas de la interfaz de usuario.</p>
+    </div>
+  </div>
+</details>
+
+
+<details class="component-card">
+  <summary class="component-header">
+    <h3>app/src/app/pages/management/users/user/user.component.ts</h3>
+  </summary>
+  <div class="component-body">
+      <h4>Análisis General</h4>
+      <p>
+        Esta actualización en el componente de gestión de usuarios (<code>UserComponent</code>) introduce una nueva entrada de permiso y reorganiza la visualización de permisos existentes. Como parte de la iniciativa de "Configuración de Reglas por Plataforma a Nivel de Cadena", el cambio principal es establecer el control de acceso a la nueva solapa de "Reglas de Negocio" en el detalle de sucursal. Adicionalmente, se mejora la organización de la interfaz de asignación de permisos para los administradores, consolidando varias opciones en una misma categoría visual.
+      </p>
+      
+      <h4>Cambios Detallados</h4>
+
+      <h5>1. Nuevo Permiso: "Reglas de Negocio" para Sucursales</h5>
+      <p><b>Explicación:</b> Se añadió un nuevo objeto de permiso al array <code>permissions</code>. Este permiso, titulado "Reglas de Negocio", con el <code>value</code> "/pages/management/branches/rules", es la clave para controlar el acceso frontend a la nueva solapa de "Reglas de Negocio" en la vista de detalle de las sucursales. Su <code>tabPosition: 1</code> indica que se agrupará con otros permisos en una categoría visual específica.</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+{
+  permission: "Sucursal Courier",
+  value: "/pages/management/branches/courier",
+  check: false,
+  tabPosition: 4
+},
+{
+  permission: "Regiones",
+  value: "/pages/management/regions",
+  check: false,
+  tabPosition: 0
+},
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+{
+  permission: "Sucursal Courier",
+  value: "/pages/management/branches/courier",
+  check: false,
+  tabPosition: 1 // DESPUÉS: tabPosition modificado a 1.
+},
+{ // DESPUÉS: Nuevo objeto de permiso para "Reglas de Negocio" en sucursales.
+  permission: "Reglas de Negocio",
+  value: "/pages/management/branches/rules", // DESPUÉS: Define la ruta del frontend a la que este permiso otorga acceso.
+  check: false,
+  tabPosition: 1 // DESPUÉS: Posiciona este permiso en la pestaña de gestión de sucursales/dashboard.
+},
+{
+  permission: "Regiones",
+  value: "/pages/management/regions",
+  check: false,
+  tabPosition: 0
+},
+      </code></pre>
+
+      <h5>2. Reorganización de la <code>tabPosition</code></h5>
+      <p><b>Explicación:</b> Se modificó la propiedad <code>tabPosition</code> de varios permisos existentes relacionados con la gestión de sucursales y dashboard. Todos estos fueron cambiados a <code>1</code>. Este cambio visual agrupa lógicamente estos permisos en la interfaz de asignación de roles del Backoffice, consolidándolos en una misma "categoría" o "pestaña".</p>
+      <b>Código Anterior:</b>
+      <pre><code class="language-javascript">
+{
+  permission: "Sucursal Software",
+  value: "/pages/management/branches/software",
+  check: false,
+  tabPosition: 2 // ANTES: Estaba en tabPosition 2.
+},
+{
+  permission: "Sucursal Plataforma",
+  value: "/pages/management/branches/platform",
+  check: false,
+  tabPosition: 3 // ANTES: Estaba en tabPosition 3.
+},
+{
+  permission: "Sucursal Courier",
+  value: "/pages/management/branches/courier",
+  check: false,
+  tabPosition: 4 // ANTES: Estaba en tabPosition 4.
+},
+// ...
+{
+  permission: "Dashboard Releases",
+  value: "/pages/dashboard/releases",
+  check: false,
+  tabPosition: 2 // ANTES: Estaba en tabPosition 2.
+},
+      </code></pre>
+      <b>Código Nuevo:</b>
+      <pre><code class="language-javascript">
+{
+  permission: "Sucursal Software",
+  value: "/pages/management/branches/software",
+  check: false,
+  tabPosition: 1 // DESPUÉS: Cambiado a tabPosition 1.
+},
+{
+  permission: "Sucursal Plataforma",
+  value: "/pages/management/branches/platform",
+  check: false,
+  tabPosition: 1 // DESPUÉS: Cambiado a tabPosition 1.
+},
+{
+  permission: "Sucursal Courier",
+  value: "/pages/management/branches/courier",
+  check: false,
+  tabPosition: 1 // DESPUÉS: Cambiado a tabPosition 1.
+},
+// ...
+{
+  permission: "Dashboard Releases",
+  value: "/pages/dashboard/releases",
+  check: false,
+  tabPosition: 1 // DESPUÉS: Cambiado a tabPosition 1.
+},
+      </code></pre>
+
+    <div class="analysis-box">
+      <h4>Conclusión del análisis</h4>
+      <p>La modificación en <code>user.component.ts</code> es un cambio preparatorio esencial que sirve a un doble propósito dentro del contexto de la "Configuración de Reglas por Plataforma a Nivel de Cadena".</p>
+      <ul>
+          <li><b>Habilitación de Acceso a Nueva Funcionalidad:</b> La adición del permiso "Reglas de Negocio" es el paso fundamental para asegurar que la nueva solapa en el detalle de sucursales sea visible y accesible solo para los usuarios autorizados.</li>
+          <li><b>Mejora de la Experiencia de Usuario para Administradores:</b> La reorganización de los <code>tabPosition</code> optimiza la usabilidad de la interfaz de asignación de roles. Al consolidar permisos relacionados, la gestión se vuelve más intuitiva y organizada.</li>
+      </ul>
+      <p>En conjunto, estos cambios refuerzan la implementación de un sistema más granular y flexible, al tiempo que mejoran la gestión interna de los permisos del Backoffice.</p>
+    </div>
+  </div>
+</details>
+
+    </section>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+</body>
+</html>
