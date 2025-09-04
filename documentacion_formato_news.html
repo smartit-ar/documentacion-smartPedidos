@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentación de Integración: Formato de Pedidos (news) para POS - Pedidos Ya</title>
+  
+  <!-- Estilos de la librería Prism.js para resaltado de sintaxis -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    :root {
+      --primary-color: #0d6efd;
+      --bg-color: #f8f9fa;
+      --text-color: #212529;
+      --text-muted-color: #6c757d;
+      --border-color: #dee2e6;
+      --code-bg: #22272e;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 2em;
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+      padding: 2.5em;
+    }
+
+    h1, h2, h3 {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5em;
+        margin-bottom: 1em;
+    }
+
+    h1 { font-size: 2.2em; }
+    h2 { font-size: 1.8em; margin-top: 2em; }
+    h3 { font-size: 1.4em; margin-top: 1.5em; border-bottom-style: dashed; }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1em;
+    }
+    th, td {
+        padding: 0.8em 1em;
+        text-align: left;
+        border: 1px solid var(--border-color);
+        vertical-align: top;
+    }
+    th { background-color: var(--bg-color); font-weight: 500; }
+    td:first-child { font-weight: 500; }
+
+    pre {
+      margin: 1em 0;
+      padding: 1.5em;
+      background-color: var(--code-bg);
+      color: #adbac7;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9em;
+      overflow-x: hidden;
+      border-radius: 6px;
+    }
+    
+    ul { padding-left: 20px; }
+    ul li { margin-bottom: 0.5em; }
+    code { font-family: 'Fira Code', monospace; background-color: #e9ecef; padding: 0.2em 0.4em; border-radius: 4px; }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Documentación de Integración: Formato de Pedidos (news) para el POS</h1>
+    <p><strong>Propósito del Documento:</strong> Este documento describe la estructura de datos del objeto <code>news</code>.</p>
+    <p><em>Nota: Este formato es el que está en producción y no incluye las modificaiones futras.</em></p>
+
+    <section id="general-structure">
+      <h2>1. Estructura General del Objeto <code>news</code></h2>
+      <p>Cada nuevo pedido se envía encapsulado en un objeto JSON principal <code>news</code>.</p>
+      
+      <h4>Ejemplo de Estructura:</h4>
+      <pre><code class="language-json">
+{
+  "_id": "...",
+  "order": { ... },
+  "branchId": 35,
+  "extraData": { ... },
+  "typeId": 1
+}
+      </code></pre>
+    </section>
+
+    <section id="order-object">
+        <h2>2. El Objeto <code>order</code></h2>
+        <p>Dentro de <code>news</code>, el objeto <code>order</code> contiene los datos transaccionales del pedido. Las claves principales son:</p>
+        <ul>
+            <li><code>id</code>, <code>originalId</code>, <code>displayId</code>: Identificadores del pedido.</li>
+            <li><code>platformId</code>: ID interno de la plataforma (ej. 1 para PedidosYa).</li>
+            <li><code>orderTime</code>, <code>deliveryTime</code>: Fechas y horas.</li>
+            <li><code>observations</code>: Notas adicionales.</li>
+            <li><code>customer</code>: Objeto con los datos del cliente.</li>
+            <li><code>payment</code>: Objeto con el detalle del pago.</li>
+            <li><code>details</code>: <strong>Array de objetos que representa el detalle de los productos del pedido.</strong></li>
+        </ul>
+    </section>
+    
+    <section id="details-array">
+      <h2>3. El Array <code>order.details</code>:</h2>
+      <p>El contenido y la estructura del array <code>details</code> dependen de cómo está catalogado el producto en la plataforma de origen. Tiene dos comportamientos distintos:</p>
+      
+      <h3>Caso A: Productos "Normales" (Sin Agrupación Padre-Hijo)</h3>
+      <p>Este es el comportamiento por defecto para cualquier producto cuyo nombre <strong>NO</strong> comienza con la palabra "promo".</p>
+      <h4>Características del Mapeo:</h4>
+      <ul>
+        <li><strong>Ítem Único:</strong> Por cada producto pedido, se genera un solo objeto en el array <code>details</code>.</li>
+        <li><strong><code>groupId</code> Fijo:</strong> El campo <code>groupId</code> siempre tiene el valor estático <code>"0"</code>.</li>
+        <li><strong>Modificadores Aplanados:</strong> Toda la información de los adicionales se concatena en una única cadena de texto en el campo <code>optionalText</code>.</li>
+        <li><strong>Asignación de SKU:</strong> El <code>sku</code> del producto principal es sobreescrito con el <code>remoteCode</code> del <strong>último</strong> modificador procesado.</li>
+      </ul>
+      
+      <h4>Ejemplo:</h4>
+      <pre><code class="language-json">
+"details": [
+  {
+    "productId": "64",
+    "count": "1",
+    "price": 11000,
+    "promo": 0,
+    "groupId": "0",
+    "description": "1 Kilo",
+    "note": "",
+    "sku": "64",
+    "optionalText": " Frutilla Vainilla Chocolate Limon"
+  }
+]
+      </code></pre>
+
+      <h3>Caso B: Productos de tipo "Promoción" (Con Agrupación Padre-Hijo)</h3>
+      <p>Este comportamiento se activa específicamente cuando el nombre del producto padre comienza con "promo" (insensible a mayúsculas/minúsculas).</p>
+      <h4>Características del Mapeo:</h4>
+      <ul>
+          <li><strong>Múltiples Ítems:</strong> Un solo producto "promo" en el pedido original genera múltiples objetos en el array <code>details</code>.</li>
+          <li><strong><code>groupId</code> para Agrupar:</strong> Se genera un <code>groupId</code> numérico (ej: "1") que es compartido por el producto principal y todos sus componentes.</li>
+          <li><strong>Ítem Padre ("Header"):</strong> Se crea un primer ítem que representa la promoción, identificado con el flag <code>promo: 2</code>.</li>
+          <li><strong>Ítems Hijo (Componentes):</strong> Cada componente o elección dentro de la promoción es un ítem separado, identificado con el flag <code>promo: 1</code>.</li>
+          <li><strong>SKU Individual:</strong> Cada ítem (padre e hijos) tiene su propio <code>sku</code> y <code>description</code> correctos.</li>
+      </ul>
+
+      <h4>Ejemplo:</h4>
+      <pre><code class="language-json">
+"details": [
+  // --- Ítem Padre (Header de la Promo) ---
+  {
+    "productId": "123",
+    "count": "1",
+    "price": 5000,
+    "promo": 2,
+    "groupId": "1",
+    "description": "Promo 2 1/4kg Helado",
+    "sku": "123"
+  },
+  // --- Ítem Hijo 1 (Primer 1/4) ---
+  {
+    "productId": "66",
+    "promo": 1,
+    "groupId": "1",
+    "description": "Sabores Helado 1/4 KG",
+    "sku": "66"
+    "optionalText": " Dulce de Leche X 1 Tramontana X 1"
+  },
+  // --- Ítem Hijo 2  (Primer 1/4) ---
+  {
+    "productId": "66",
+    "promo": 1,
+    "groupId": "1",
+    "description": "Sabores Helado 1/4 KG",
+    "sku": "66"
+    "optionalText": " Chocolate X 1 Vainilla X 1"
+  }
+]
+      </code></pre>
+    </section>
+    
+    <section id="key-fields">
+        <h2>4. Resumen de Campos en <code>details</code></h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>productId</code></td>
+                    <td>ID del producto o modificador en la plataforma de origen.</td>
+                </tr>
+                <tr>
+                    <td><code>sku</code></td>
+                    <td>El SKU que el POS debe utilizar.</td>
+                </tr>
+                <tr>
+                    <td><code>description</code></td>
+                    <td>Nombre del producto o modificador.</td>
+                </tr>
+                <tr>
+                    <td><code>count</code></td>
+                    <td>Cantidad del ítem.</td>
+                </tr>
+                <tr>
+                    <td><code>price</code></td>
+                    <td>Precio unitario del ítem.</td>
+                </tr>
+                <tr>
+                    <td><code>groupId</code></td>
+                    <td>Usado para agrupar ítems. Es <code>"0"</code> para productos normales y un número (<code>"1"</code>, <code>"2"</code>...) para agrupar promos.</td>
+                </tr>
+                <tr>
+                    <td><code>promo</code></td>
+                    <td>Flag numérico. <code>0</code> para ítems normales, <code>2</code> para el padre de una promo, <code>1</code> para los hijos de una promo.</td>
+                </tr>
+                <tr>
+                    <td><code>optionalText</code></td>
+                    <td>Contiene una cadena de texto con todos los modificadores concatenados.</td>
+                </tr>
+                <tr>
+                    <td><code>note</code></td>
+                    <td>Comentarios específicos del producto, enviados por el cliente.</td>
+                </tr>
+            </tbody>
+        </table>
+        
+    </section>
+
+  </div>
+
+  <!-- Scripts para funcionalidad (resaltado de sintaxis) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Activar el resaltado de sintaxis de Prism
+      Prism.highlightAll();
+    });
+  </script>
+
+</body>
+</html>
