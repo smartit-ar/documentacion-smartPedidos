@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía de Implementación: API de Motivos de Rechazo</title>
+  
+  <!-- Estilos de la librería Prism.js para resaltado de sintaxis -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    :root {
+      --primary-color: #0d6efd;
+      --bg-color: #f8f9fa;
+      --text-color: #212529;
+      --text-muted-color: #6c757d;
+      --border-color: #dee2e6;
+      --code-bg: #22272e;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 2em;
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+      padding: 2.5em;
+    }
+
+    h1, h2, h3 {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5em;
+        margin-bottom: 1em;
+    }
+
+    h1 { font-size: 2.2em; }
+    h2 { font-size: 1.8em; margin-top: 2em; }
+    h3 { font-size: 1.4em; margin-top: 1.5em; border-bottom-style: dashed; }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1em;
+    }
+    th, td {
+        padding: 0.8em 1em;
+        text-align: left;
+        border: 1px solid var(--border-color);
+        vertical-align: top;
+    }
+    th { background-color: var(--bg-color); font-weight: 500; }
+    td:first-child { font-weight: 500; }
+
+    pre {
+      margin: 1em 0;
+      padding: 1.5em;
+      background-color: var(--code-bg);
+      color: #adbac7;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9em;
+      overflow-x: hidden;
+      border-radius: 6px;
+    }
+    
+    ul { padding-left: 20px; }
+    ul li { margin-bottom: 0.5em; }
+    code { font-family: 'Fira Code', monospace; background-color: #e9ecef; padding: 0.2em 0.4em; border-radius: 4px; }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Guía de Implementación: API de Motivos de Rechazo para Cloud</h1>
+    <p>Este documento describe cómo utilizar el nuevo endpoint de la API para obtener una lista de los motivos de rechazo de pedidos y tiempos de entrega.</p>
+
+    <section id="endpoint-spec">
+      <h2>1. Especificación del Endpoint</h2>
+      <p>Para obtener la lista completa de motivos de rechazo y tiempos de entrega, se debe realizar una petición al siguiente endpoint:</p>
+      <table>
+        <tbody>
+            <tr>
+                <td>Método</td>
+                <td><code>GET</code></td>
+            </tr>
+            <tr>
+                <td>Ruta</td>
+                <td><code>/api/branches/rejected-messages</code></td>
+            </tr>
+            <tr>
+                <td>Autenticación</td>
+                <td>Requerida. Se debe incluir un Bearer Token (JWT) válido en la cabecera <code>/api/branches/login</code> .</td>
+            </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="response-format">
+        <h2>2. Formato de la Respuesta (200 OK)</h2>
+        <p>La respuesta exitosa devolverá un objeto JSON con tres propiedades principales: <code>rejectedMessages</code>, <code>deliveryTimes</code> y <code>branchTimeout</code>.</p>
+        <pre><code class="language-json">
+{
+  "rejectedMessages": [
+    {
+      "id": 1,
+      "platformId": 7,
+      "name": "Sin Producto/Variedad",
+      "descriptionES": "Sin Producto/Variedad",
+      "descriptionPT": "Sin Producto/Variedad",
+      "forRestaurant": false,
+      "forLogistics": true,
+      "forPickup": true
+    }
+    // ... más motivos
+  ],
+  "deliveryTimes": [
+    {
+      "id": 1,
+      "description": "10-15 min",
+      "maxMinutes": 15,
+      "minMinutes": 10,
+      "name": "10-15",
+      "order": 1,
+      "platformId": 7
+    }
+    // ... más tiempos de entrega
+  ],
+  "branchTimeout": 20
+}
+        </code></pre>
+
+      <h3>2.1. Detalle del Objeto <code>rejectedMessages</code></h3>
+      <p>Cada objeto dentro del array <code>rejectedMessages</code> representa un motivo de rechazo y tiene la siguiente estructura:</p>
+      <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>id</code></td>
+                <td>Number</td>
+                <td>Identificador numérico del motivo de rechazo.</td>
+            </tr>
+            <tr>
+                <td><code>platformId</code></td>
+                <td>Number</td>
+                <td>ID de la plataforma a la que pertenece el motivo (Rappi, PedidosYa, etc.).</td>
+            </tr>
+            <tr>
+                <td><code>name</code></td>
+                <td>String</td>
+                <td>Nombre corto del motivo de rechazo.</td>
+            </tr>
+            <tr>
+                <td><code>descriptionES</code></td>
+                <td>String</td>
+                <td>Descripción en español.</td>
+            </tr>
+            <tr>
+                <td><code>descriptionPT</code></td>
+                <td>String</td>
+                <td>Descripción auxiliar (No utilizada).</td>
+            </tr>
+            <tr>
+                <td><code>forPickup</code></td>
+                <td>Boolean</td>
+                <td><code>true</code> si el motivo es aplicable a órdenes de <strong>TakeAway (retiro en local)</strong>.</td>
+            </tr>
+            <tr>
+                <td><code>forLogistics</code></td>
+                <td>Boolean</td>
+                <td><code>true</code> si el motivo es aplicable a órdenes con <strong>Delivery de la Plataforma</strong>.</td>
+            </tr>
+            <tr>
+                <td><code>forRestaurant</code></td>
+                <td>Boolean</td>
+                <td><code>true</code> si el motivo es aplicable a órdenes con <strong>Delivery Propio del restaurante</strong>.</td>
+            </tr>
+        </tbody>
+      </table>
+
+      <h3>2.2. Detalle del Objeto <code>deliveryTimes</code></h3>
+      <p>Contiene la lista de los posibles tiempos de entrega a configurar. Actualmente no se utiliza de manera directa (posible deprecacion).</p>
+    </section>
+    
+    <section id="implementation-guide">
+      <h2>3. Guía de Implementación para el Consumidor (Cloud)</h2>
+      
+      <h3>3.1. Sincronización de Datos</h3>
+      <p>Se recomienda que el POS llame a este endpoint <code>GET /api/branches/rejected-messages</code> para sincronizar y actualizar su lista local de motivos. La respuesta del endpoint debe <strong>reemplazar completamente</strong> la lista existente en el POS para asegurar consistencia.</p>
+
+      <h3>3.2. Lógica de Filtrado en la Interfaz de Usuario</h3>
+      <p>Para mostrar al operador solo los motivos de rechazo relevantes, el POS debe implementar la siguiente lógica de filtrado basada en el tipo de orden que se está gestionando:</p>
+      <ul>
+          <li><strong>Para órdenes de TakeAway (Retiro en Local):</strong>
+              <ul>
+                  <li>Mostrar únicamente los motivos donde <code>forPickup</code> sea <code>true</code>.</li>
+              </ul>
+          </li>
+          <li><strong>Para órdenes con Delivery de la Plataforma (ej. repartidor de Rappi):</strong>
+              <ul>
+                  <li>Mostrar únicamente los motivos donde <code>forLogistics</code> sea <code>true</code>.</li>
+              </ul>
+          </li>
+          <li><strong>Para órdenes con Delivery Propio (repartidor del local):</strong>
+              <ul>
+                  <li>Mostrar únicamente los motivos donde <code>forRestaurant</code> sea <code>true</code>.</li>
+              </ul>
+          </li>
+      </ul>
+
+      <h3>3.3. Lógica de Envío de Rechazo</h3>
+     <strong>No hay cambios en este flujo, se sigue utilizando el <code>id</code> como hasta ahora.</strong></p>
+    </section>
+    
+    <section id="error-responses">
+        <h2>4. Respuestas de Error</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td><code>401 Unauthorized</code></td>
+                    <td>Se devuelve si el token JWT no se proporciona, es inválido o ha expirado.</td>
+                </tr>
+                <tr>
+                    <td><code>400 Bad Request</code></td>
+                    <td>Se devuelve si ocurre un error en el servidor al procesar la solicitud.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+  </div>
+
+  <!-- Scripts para funcionalidad (resaltado de sintaxis) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Activar el resaltado de sintaxis de Prism
+      Prism.highlightAll();
+    });
+  </script>
+
+</body>
+</html>
