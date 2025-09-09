@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación: Actualización de la Colección 'news'</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f7f8fa;
+            color: #333;
+            margin: 0;
+            padding: 2em;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 2em 3em;
+        }
+
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 2em;
+            padding-bottom: 1em;
+        }
+
+        .doc-header h1 {
+            font-size: 2em;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-top: 2em;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: #34495e;
+        }
+        
+        h3 {
+            font-size: 1.2em;
+            margin-top: 2em;
+            color: #34495e;
+            border-bottom-style: dashed;
+            border-bottom-width: 1px;
+            padding-bottom: 5px;
+        }
+
+        code {
+            font-family: 'Source Code Pro', monospace;
+            background-color: #ecf0f1;
+            color: #c0392b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 1.5em;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: 0.9em;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 0.5em;
+        }
+
+        .note-box {
+            border-left: 5px solid #3498db;
+            background-color: #e8f4fd;
+            padding: 1em;
+            margin: 2em 0;
+            border-radius: 4px;
+        }
+
+        .note-box h3 {
+            color: #2980b9;
+            margin-top: 0;
+            border-bottom: none;
+        }
+
+        .footer-logo {
+            text-align: center;
+            margin-top: 3em;
+            padding-top: 1em;
+            border-top: 1px solid #eee;
+            font-family: 'Source Code Pro', monospace;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="doc-header">
+        <h1>Documentación: Actualización de la Colección 'news'</h1>
+    </div>
+
+    <h2>1. Adición del Objeto 'tenant'</h2>
+    <p>
+        A partir de ahora, la colección <strong><code>news</code></strong> incluirá un nuevo objeto llamado <strong><code>tenant</code></strong> dentro de la estructura del objeto <strong><code>order</code></strong>. Este cambio se aplicará a todos los documentos de la colección.
+    </p>
+    
+    <p>
+        Este nuevo objeto contendrá información sobre el tenant. La estructura del objeto <strong><code>tenant</code></strong> es la siguiente:
+    </p>
+    <pre><code>"tenant": {
+    "name": "grido",
+    "orgId": "org_g4qPlLbxcJZx5e7U",
+    "tenantId": "d3186bc6d7b2"
+}
+    </code></pre>
+
+    <div class="note-box">
+        <h3>&#9432; Nota Importante</h3>
+        <p>Los valores de los atributos <strong><code>name</code></strong>, <strong><code>orgId</code></strong> y <strong><code>tenantId</code></strong> cambiarán dinámicamente en cada documento según el tenant al que corresponda la <strong><code>news</code></strong>.</p>
+    </div>
+
+    <h2>2. Ejemplo de Documento 'news' Actualizado</h2>
+    <p>
+        A continuación, un ejemplo de un documento de la colección <strong><code>news</code></strong> para ilustrar la ubicación y el formato del nuevo objeto <strong><code>tenant</code></strong>.
+    </p>
+    <pre><code>{
+    "_id": {
+        "$oid": "68c010e9810d2f81f1bed140"
+    },
+    "order": {
+        "id": 4100552,
+        ...
+        "pickupOnShop": true,
+        "pickupDateOnShop": "2019-09-23T16:40:32Z",
+        "preOrder": false,
+        "observations": "observacion",
+        "ownDelivery": false,
+        // Nuevo objeto agregado
+        "tenant": {
+            "name": "grido",
+            "orgId": "org_g4qPlLbxcJZx5e7U",
+            "tenantId": "d3186bc6d7b2"
+        },
+        ...
+    },
+    ...
+}
+    </code></pre>
+    
+    <div class="footer-logo">
+        { smart Pedidos }
+    </div>
+</div>
+
+</body>
+</html>
