@@ -89,7 +89,7 @@
 
   <div class="container">
     <header class="main-header">
-      <h1>Documento: Formato Estructurado para Pedidos</h1>
+      <h1>Documento: Nuevo Formato de News en <code>order.details</code></h1>
       <div class="version-info">
         <span>Versión: 5.0 (Final)</span>
         <span>Fecha: 12 de Septiembre, 2025</span>
@@ -98,17 +98,20 @@
 
     <section id="overview">
       <h2>1. Objetivo General</h2>
-      <p>Este documento define el formato JSON de salida para pedidos procesados desde plataformas de delivery externas.</p>
+      <p>Este documento define el formato JSON de salida para el objeto <code>details</code> en la coleccion <code>news</code> de pedidos procesados para nuevos tenants.</p>
     </section>
 
     <section id="root-structure">
       <h2>2. Estructura Raíz</h2>
       <p>El objeto JSON de un pedido tiene una única clave de nivel superior: <code>details</code>. El valor de esta clave es siempre un <strong>Array</strong> que contendrá objetos <code>item</code>.</p>
       <pre><code class="language-json">{
-  "details": [
-    // ... Array de objetos Ítem ...
-  ]
-}</code></pre>
+  "order":{
+      //... Demas Atributos...
+      "details": [
+       // ... Array de objetos Ítem ...
+      ]
+}
+</code></pre>
     </section>
     
     <section id="item-object">
