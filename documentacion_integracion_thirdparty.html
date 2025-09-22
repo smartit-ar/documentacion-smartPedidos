@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documento de Integración con Terceros - Smartfran</title>
+  
+  <!-- Estilos de la librería Prism.js para resaltado de sintaxis -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+
+    :root {
+      --primary-color: #0d6efd;
+      --bg-color: #f8f9fa;
+      --text-color: #212529;
+      --text-muted-color: #6c757d;
+      --border-color: #dee2e6;
+      --code-bg: #22272e;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 2em;
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+      padding: 2.5em;
+    }
+    
+    .main-header { text-align: center; margin-bottom: 2em; padding-bottom: 1em; border-bottom: 1px solid var(--border-color); }
+    .main-header h1 { margin: 0 0 0.1em 0; font-size: 2.5em; }
+    .main-header p { margin: 0; font-size: 1.2em; color: var(--text-muted-color); }
+
+    .toc { background-color: #e9ecef; padding: 1.5em; border-radius: 8px; margin-bottom: 3em; }
+    .toc h2 { margin-top: 0; font-size: 1.2em; }
+    .toc ul { list-style-type: none; padding-left: 0; margin: 0; }
+    .toc ul li { margin-bottom: 0.5em;}
+    .toc ul ul { padding-left: 20px; margin-top: 0.5em;}
+    .toc a { text-decoration: none; color: var(--primary-color); font-weight: 500; }
+    .toc a:hover { text-decoration: underline; }
+
+    section { margin-bottom: 3em; }
+    
+    h2 { font-size: 1.8em; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5em; margin-bottom: 1em; }
+    h3 { font-size: 1.4em; margin-top: 1.5em; margin-bottom: 1em; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.5em; }
+    
+    .endpoint-card {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-top: 2em;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .endpoint-header {
+        background-color: #fafbfc;
+        padding: 1em 1.5em;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .endpoint-header h4 { margin: 0; font-size: 1.2em; }
+    .endpoint-body { padding: 1.5em; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5em;
+        font-size: 0.95em;
+    }
+    th, td {
+        padding: 0.8em 1em;
+        text-align: left;
+        border: 1px solid var(--border-color);
+        vertical-align: top;
+    }
+    th { background-color: var(--bg-color); font-weight: 500; }
+    td:first-child { font-weight: 500; white-space: nowrap; }
+
+    pre {
+      margin: 1em 0;
+      padding: 1.5em;
+      background-color: var(--code-bg);
+      color: #adbac7;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9em;
+      overflow-x: hidden;
+      border-radius: 6px;
+    }
+    
+    code { font-family: 'Fira Code', monospace; background-color: #e9ecef; padding: 0.2em 0.4em; border-radius: 4px; }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <header class="main-header">
+      <h1>Documento de Integración con Terceros</h1>
+      <p>Integración con Plataformas de Pedidos - SmartPedidos - Smartfran</p>
+    </header>
+    
+    <section id="history">
+        <h2>Historial de Revisiones del Documento</h2>
+        <table>
+            <thead>
+                <tr><th>Versión</th><th>Fecha</th><th>Modificado por</th><th>Descripción de Cambios</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>0.0.1</td><td>15/08/2019</td><td>A Kraupl</td><td>Versión inicial</td></tr>
+                <tr><td>0.0.2</td><td>04/09/2019</td><td>A Kraupl</td><td>Se agregan atributos de promociones al detalle del pedido.</td></tr>
+                <tr><td>0.0.3</td><td>09/09/2019</td><td>A. Kraupl</td><td>Correción del body Post Orders. Agrego unitPrice a la promoción.</td></tr>
+                <tr><td>0.0.4</td><td>19/11/2019</td><td>A. Kraupl</td><td>Respuestas de error. Nuevo BaseUrl.</td></tr>
+                <tr><td>0.0.5</td><td>01/04/2020</td><td>A.Kraupl</td><td>Se agrega campo <code>partial</code> al payment. Se agrega <code>email</code> y <code>dni</code> al user.</td></tr>
+                <tr><td>0.0.6</td><td>06/07/2021</td><td>F. Velez</td><td>Se agrega response para las nuevas plataformas.</td></tr>
+                <tr><td>0.0.7</td><td>29/12/2023</td><td>O. Joel</td><td>Actualización general.</td></tr>
+                <tr><td>0.0.8</td><td>22/09/2025</td><td>A. Matias</td><td>Eliminacion del apartado Busqueda de Datos (Deprecado). Actualizaciones Generales</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <nav class="toc">
+      <h2>Tabla de Contenidos</h2>
+      <ul>
+        <li><a href="#intro"> Introducción</a></li>
+        <li><a href="#config">1. Datos de Configuración</a></li>
+        <li><a href="#process">2. Proceso</a></li>
+        <li><a href="#requests">3. Peticiones (API SmartPedidos)</a></li>
+        <li><a href="#responses">4. Callbacks</a></li>
+        <li><a href="#problems">5. Solucion de Problemas</a></li>
+        </ul>
+       </nav>
+    
+    <section id="intro">
+        <h2>Introducción</h2>
+        <p>Este documento contiene información referida a la integración de terceros como plataformas generadoras de pedidos hacia SmartPedidos. Contiene los endpoints necesarios para gestionar todo el tráfico desde la generación de un nuevo pedido hasta la gestión de sus estados.</p>
+    </section>
+    
+    <section id="operation">
+        <h2>Operación de ThirdParties</h2>
+
+        <h3 id="config">1. Datos de Configuración</h3>
+        <ul>
+            <li><strong>THIRD_PARTY_ID:</strong> SOLICITAR</li>
+            <li><strong>THIRD_PARTY_SECRET:</strong> SOLICITAR</li>
+            <li><strong>URL:</strong> <code>https://stgpedidos.smartfran.com/api/thirdParties</code></li>
+        </ul>
+
+        <h3 id="process">2. Proceso</h3>
+        <p>Para poder operar con el servicio de gestión de pedidos de SmartFran, la plataforma tercera deberá loguearse con los datos de configuración, obtener un token y, posteriormente, realizar peticiones a los endpoints protegidos con dicho token. Las órdenes a ingresar deben indicar la sucursal (<code>branchId</code>) a la que será enviado el pedido.</p>
+        
+        <h3 id="requests">3. Peticiones (API SmartPedidos)</h3>
+        <p>Las siguientes son las peticiones que nuestra API permite:</p>
+
+        <div class="endpoint-card">
+            <header class="endpoint-header"><h4>3.1. Login</h4></header>
+            <div class="endpoint-body">
+                <p>El login es obligatorio para hacer cualquier otro tipo de petición. El token expira en 24 horas.</p>
+                <table>
+                    <tbody>
+                        <tr><td><strong>Endpoint</strong></td><td><code>/login</code></td></tr>
+                        <tr><td><strong>Método</strong></td><td><code>POST</code></td></tr>
+                    </tbody>
+                </table>
+                <h4>Body</h4>
+                <pre><code class="language-javascript">{
+  "thirdPartyId": "THIRD_PARTY_ID",
+  "thirdPartySecret": "THIRD_PARTY_SECRET"
+}</code></pre>
+                <h4>Respuesta Exitosa (200 OK)</h4>
+                <pre><code class="language-javascript">{
+  "data": {
+    "name": "THIRD_PARTY_NAME",
+    "id": "Id del third party en el sistema de SmartFran"
+  },
+  "accessToken": "ACCESS_TOKEN"
+}</code></pre>
+                <h4>Respuesta de Error (401 Unauthorized)</h4>
+                <pre><code class="language-javascript">{
+  "message": "Login failed.",
+  "error": "Login failed."
+}</code></pre>
+            </div>
+        </div>
+
+       <!-- INICIO DEL FRAGMENTO: SECCIÓN CREAR ÓRDENES -->
+<div class="endpoint-card">
+    <header class="endpoint-header">
+        <h4>3.2. Crear Órdenes</h4>
+    </header>
+    <div class="endpoint-body">
+        <p>Permite enviar órdenes a las sucursales, siempre que el cuerpo de la petición siga el formato especificado. El diccionario de campos ayuda a construir el body correctamente.</p>
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Endpoint</strong></td>
+                    <td><code>/orders</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Método</strong></td>
+                    <td><code>POST</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Header</strong></td>
+                    <td><code>Authorization: Bearer ACCESS_TOKEN</code></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>Body de Ejemplo</h4>
+        <pre><code class="language-javascript">
+[{
+  "id": "62743329",
+  "state": "PENDING",
+  "preOrder": false,
+  "registeredDate": "2019-07-23T16:42:32Z",
+  "deliveryDate": "2019-07-23T17:19:32Z",
+  "pickup": false,
+  "pickupDate": null,
+  "notes": "observacion",
+  "logistics": false,
+  "user": {
+    "platform": "thirdParty",
+    "name": "Daley",
+    "lastName": "Paley",
+    "id": 10455712,
+    "email": "prueba@gmail.com",
+    "dni": "99999999"
+  },
+  "address": {
+    "description": "Obispo trejo 1420 esquina rew qwre",
+    "phone": "4324232"
+  },
+  "details": [{
+    "id": "4568487",
+    "unitPrice": 220,
+    "quantity": 1,
+    "discount": 0,
+    "name": "Promo Helado 2 Kilos por 1",
+    "sku": "4568487",
+    "notes": "Nota de sobre el producto.",
+    "promotion": true,
+    "optionGroups": [{
+      "id": 49,
+      "name": "Primer kilo",
+      "sku": "64",
+      "unitPrice": "110",
+      "notes": "Granizado: 1 - Dulce de leche: 1 - Banana: 1 - Limon: 1"
+    }, {
+      "id": 50,
+      "name": "Segundo kilo",
+      "sku": "64",
+      "unitPrice": "110",
+      "notes": "Chocolate: 3 - Vainilla: 1"
+    }]
+  }, {
+    "id": 51,
+    "unitPrice": 240,
+    "quantity": 1,
+    "discount": 0,
+    "name": "1 Kilo",
+    "sku": "64",
+    "notes": "Granizado. Cantidad: 4"
+  }],
+  "payment": [{
+    "method": "Efectivo",
+    "shipping": 50,
+    "discount": 100,
+    "voucher": "voucher:PEYA-F53A2ABB-9D5A-4496-97F6-7DED6710BE36",
+    "online": false,
+    "partial": 250,
+    "paymentAmount": 5,
+    "subtotal": 245
+  }],
+  "branchId": "15"
+}]
+        </code></pre>
+
+        <h4>Diccionario del Body</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>id</code></td><td>String</td><td>Identificador que tiene la orden en el ThirdParty.</td></tr>
+                <tr><td><code>state</code></td><td>String</td><td>Estado de la orden. Valor inicial: "PENDING".</td></tr>
+                <tr><td><code>preOrder</code></td><td>Boolean</td><td>Será <code>true</code> si el local estaba cerrado cuando el cliente hizo el pedido.</td></tr>
+                <tr><td><code>registeredDate</code></td><td>String</td><td>Fecha y hora (ISO 8601) en que se realizó la orden en la plataforma del ThirdParty.</td></tr>
+                <tr><td><code>deliveryDate</code></td><td>String</td><td>Fecha y hora (ISO 8601) de entrega programada.</td></tr>
+                <tr><td><code>pickup</code></td><td>Boolean</td><td>Será <code>true</code> si el cliente retira el pedido en el local.</td></tr>
+                <tr><td><code>pickupDate</code></td><td>String | null</td><td>Fecha y hora (ISO 8601) de retiro programado.</td></tr>
+                <tr><td><code>notes</code></td><td>String</td><td>Observaciones generales del cliente para toda la orden.</td></tr>
+                <tr><td><code>logistics</code></td><td>Boolean</td><td>Será <code>true</code> si el local tiene su propio delivery.</td></tr>
+                <tr><td><code>user</code></td><td>Object</td><td>Objeto que contiene la información del cliente.</td></tr>
+                <tr><td><code>platform</code></td><td>String</td><td>Nombre del thirdParty.</td></tr>
+                <tr><td><code>name</code></td><td>String</td><td>Nombre del cliente.</td></tr>
+                <tr><td><code>lastName</code></td><td>String</td><td>Apellido del cliente.</td></tr>
+                <tr><td><code>id</code></td><td>Number</td><td>Identificador del cliente en el ThirdParty.</td></tr>
+                <tr><td><code>email</code></td><td>String</td><td>Email del cliente.</td></tr>
+                <tr><td><code>dni</code></td><td>String</td><td>DNI del cliente.</td></tr>
+                <tr><td><code>address</code></td><td>Object</td><td>Objeto con la dirección de entrega.</td></tr>
+                <tr><td><code>description</code></td><td>String</td><td>Dirección del cliente.</td></tr>
+                <tr><td><code>phone</code></td><td>String</td><td>Número de teléfono del cliente.</td></tr>
+                <tr><td><code>details</code></td><td>Array&lt;Object&gt;</td><td>Array de objetos, donde cada objeto es un ítem del pedido.</td></tr>
+                <tr><td><code>id</code></td><td>String</td><td>Identificador del producto en el ThirdParty.</td></tr>
+                <tr><td><code>unitPrice</code></td><td>Number</td><td>Precio unitario del producto.</td></tr>
+                <tr><td><code>quantity</code></td><td>Number</td><td>Cantidad solicitada de este producto.</td></tr>
+                <tr><td><code>discount</code></td><td>Number</td><td>Descuento monetario aplicado a este producto.</td></tr>
+                <tr><td><code>name</code></td><td>String</td><td>Descripción completa del producto.</td></tr>
+                <tr><td><code>sku</code></td><td>String</td><td>Código identificador del producto (SKU).</td></tr>
+                <tr><td><code>notes</code></td><td>String</td><td>Nota específica para este producto.</td></tr>
+                <tr><td><code>promotion</code></td><td>Boolean</td><td>Indica si el detalle es del tipo promoción. Por defecto es <code>false</code>.</td></tr>
+                <tr><td><code>optionGroups</code></td><td>Array&lt;Object&gt;</td><td>Array que contiene los productos que conforman la promoción.</td></tr>
+                <tr><td><code>payment</code></td><td>Array&lt;Object&gt;</td><td>Array que contiene los métodos de pago (usualmente uno solo).</td></tr>
+                <tr><td><code>method</code></td><td>String</td><td>Método de pago (ej. "Efectivo").</td></tr>
+                <tr><td><code>shipping</code></td><td>Number</td><td>Costo de envío.</td></tr>
+                <tr><td><code>discount</code></td><td>Number</td><td>Descuento total aplicado al pago.</td></tr>
+                <tr><td><code>voucher</code></td><td>String</td><td>Código del voucher de descuento, si aplica.</td></tr>
+                <tr><td><code>online</code></td><td>Boolean</td><td>Indica si el pago fue online (<code>true</code>) o se realiza en la entrega (<code>false</code>).</td></tr>
+                <tr><td><code>partial</code></td><td>Number</td><td>Monto con el que pagará el cliente (para calcular el vuelto).</td></tr>
+                <tr><td><code>paymentAmount</code></td><td>Number</td><td>Vuelto a entregar al cliente.</td></tr>
+                <tr><td><code>subtotal</code></td><td>Number</td><td>Precio total de la compra antes de descuentos (Suma de productos + Envío).</td></tr>
+                <tr><td><code>branchId</code></td><td>String</td><td>Identificador de la sucursal de destino en el sistema Smartfran.</td></tr>
+            </tbody>
+        </table>
+        
+        <h4>Respuesta Exitosa (200 OK)</h4>
+        <pre><code class="language-javascript">
+[{
+  "id": 62743329,
+  "state": "PENDING",
+  "branchId": 15
+}]
+        </code></pre>
+        
+        <h4>Respuestas de Error</h4>
+        <p><strong>401 - No Autorizado (Token inválido, expirado o sin permisos)</strong></p>
+        <pre><code class="language-javascript">
+{ "message": "Invalid token." }
+{ "message": "The token has not access permission to the route." }
+{ "message": "Expired token." }
+        </code></pre>
+        <p><strong>400 - Bad Request (Orden ya creada)</strong></p>
+        <pre><code class="language-javascript">
+{ "error": "order/s 62743329 already exists" }
+        </code></pre>
+    </div>
+</div>
+<!-- FIN DEL FRAGMENTO: SECCIÓN CREAR ÓRDENES -->
+
+        <!-- Cards para Cancelar y Obtener Orden -->
+     <!-- INICIO DEL FRAGMENTO: SECCIÓN CANCELAR ORDEN -->
+<div class="endpoint-card">
+    <header class="endpoint-header">
+        <h4>3.3. Cancelar Orden</h4>
+    </header>
+    <div class="endpoint-body">
+        <p>Con esta petición puede, si por alguna razón se desea, indicar el rechazo de una orden.</p>
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Endpoint</strong></td>
+                    <td><code>/orders/cancel</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Método</strong></td>
+                    <td><code>POST</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Header</strong></td>
+                    <td><code>Authorization: Bearer ACCESS_TOKEN</code></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>Body</h4>
+        <pre><code class="language-javascript">
+{
+  "id": "62743329", //String
+  "branchId": "15" //String
+}
+        </code></pre>
+
+        <h4>Respuesta Exitosa (200 OK)</h4>
+        <pre><code class="language-javascript">
+{
+  "id": "62743329",
+  "state": "REJECTED"
+}
+        </code></pre>
+        
+        <h4>Respuestas de Error</h4>
+        <p><strong>401 - No Autorizado (Token inválido, expirado o sin permisos)</strong></p>
+        <pre><code class="language-javascript">
+{ "message": "Invalid token." }
+{ "message": "The token has not access permission to the route." }
+{ "message": "Expired token." }
+        </code></pre>
+
+        <p><strong>404 - Not Found (Orden no encontrada)</strong></p>
+        <pre><code class="language-javascript">
+{
+  "message": "The order 62743330 could not be found.",
+  "error": {}
+}
+        </code></pre>
+
+        <p><strong>400 - Bad Request (Orden ya procesada)</strong></p>
+        <pre><code class="language-javascript">
+{
+  "error": "La orden 62743330 ya está procesada"
+}
+        </code></pre>
+    </div>
+</div>
+<!-- FIN DEL FRAGMENTO: SECCIÓN CANCELAR ORDEN -->
+        
+       <!-- INICIO DEL FRAGMENTO: SECCIÓN OBTENER ORDEN -->
+<div class="endpoint-card">
+    <header class="endpoint-header">
+        <h4>3.4. Obtener Orden</h4>
+    </header>
+    <div class="endpoint-body">
+        <p>Permite consultar una orden mediante el ID con el que fue creada.</p>
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Endpoint</strong></td>
+                    <td><code>/orders/:id</code> (Ej: <code>/orders/62743329</code>)</td>
+                </tr>
+                <tr>
+                    <td><strong>Método</strong></td>
+                    <td><code>GET</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Header</strong></td>
+                    <td><code>Authorization: Bearer ACCESS_TOKEN</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Body</strong></td>
+                    <td>No posee.</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>Respuesta Exitosa (200 OK)</h4>
+        <pre><code class="language-javascript">
+{
+  "id": 62743329,
+  "state": "REJECTED",
+  "preOrder": false,
+  "registeredDate": "2019-07-23T16:42:32Z",
+  "deliveryDate": "2019-07-23T17:19:32Z",
+  "pickup": false,
+  "pickupDate": null,
+  "notes": "observacion",
+  "logistics": false,
+  "user": {
+    "platform": "thirdParty",
+    "name": "Daley",
+    "lastName": "Paley",
+    "id": 10455712,
+    "email": "daley.paley@gmail.com",
+    "dni": 37897458
+  },
+  "address": {
+    "description": "Obispo trejo 1420 esquina rew qwre",
+    "phone": "4324232"
+  },
+  "details": [{
+    "id": 4568487,
+    "unitPrice": 220,
+    "quantity": 1,
+    "promo": 1,
+    "promotion": 1,
+    "discount": 0,
+    "name": "Crocantino (10 porciones)",
+    "sku": "4568487",
+    "notes": "nota"
+  }],
+  "payment": [{
+    "method": "Efectivo",
+    "shipping": 50,
+    "discount": 100,
+    "voucher": "voucher:PEYA-F53A2ABB-9D5A-4496-97F6-7DED6710BE36",
+    "online": false,
+    "partial": 250,
+    "paymentAmount": 5,
+    "subtotal": 245
+  }],
+  "timestamp": 1563910952322,
+  "branchId": "15"
+}
+        </code></pre>
+
+        <h4>Respuestas de Error</h4>
+        <p><strong>401 - No Autorizado (Token inválido, expirado o sin permisos)</strong></p>
+        <pre><code class="language-javascript">
+{ "message": "Invalid token." }
+{ "message": "The token has not access permission to the route." }
+{ "message": "Expired token." }
+        </code></pre>
+    </div>
+</div>
+      
+       <div class="endpoint-card">
+            <header class="endpoint-header"><h4>3.5. Obtener Logs de Errores</h4></header>
+            <div class="endpoint-body">
+                <p>Permite obtener un listado de logs de errores generados en los últimos 5 minutos. Útil para depuración y monitoreo de integraciones fallidas.</p>
+                <table>
+                    <tbody>
+                        <tr><td><strong>Endpoint</strong></td><td><code>/getLogs</code></td></tr>
+                        <tr><td><strong>Método</strong></td><td><code>GET</code></td></tr>
+                        <tr><td><strong>Header</strong></td><td><code>Authorization: Bearer ACCESS_TOKEN</code></td></tr>
+                    </tbody>
+                </table>
+                <h4>Respuesta Exitosa (200 OK)</h4>
+                <p>Retorna un array de objetos con logs de error. Los logs están ordenados por fecha descendente.</p>
+                <pre><code class="language-javascript">[
+  {
+    "id": "64f1a2b3c4d5e6f7g8h9i0j1",
+    "name": "Falló saveOrder thirdParty",
+    "message": "Platform not active",
+    "createdAt": "2025-09-21T15:05:00.000Z",
+    "plataform": "ThirdParty",
+    "level": "Warning",
+    "status": 401,
+    "stack": "Error: Platform not active\n    at saveOrder (/api/src/controllers/thirdParty.js:156:15)\n    ..."
+  }
+]</code></pre>
+                <h4>Diccionario de Campos en la Respuesta</h4>
+                <table>
+                    <thead>
+                        <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>id</code></td><td>String</td><td>ID único del log en la base de datos.</td></tr>
+                        <tr><td><code>name</code></td><td>String</td><td>Nombre descriptivo del error (basado en el mensaje del log).</td></tr>
+                        <tr><td><code>message</code></td><td>String</td><td>Detalle del mensaje de error.</td></tr>
+                        <tr><td><code>createdAt</code></td><td>String</td><td>Fecha y hora ISO 8601 de creación del log.</td></tr>
+                        <tr><td><code>plataform</code></td><td>String</td><td>Nombre de la plataforma asociada al error (ej. "ThirdParty").</td></tr>
+                        <tr><td><code>level</code></td><td>String</td><td>Nivel del log (siempre "Warning" en este endpoint).</td></tr>
+                        <tr><td><code>status</code></td><td>Number</td><td>Código de estado HTTP asociado (generalmente 401).</td></tr>
+                        <tr><td><code>stack</code></td><td>String</td><td>Pila de llamadas del error para depuración.</td></tr>
+                    </tbody>
+                </table>
+                <h4>Respuestas de Error</h4>
+                <p><strong>401 - No Autorizado</strong>: Token inválido o expirado.</p>
+                <pre><code class="language-javascript">{ "message": "Invalid token." }</code></pre>
+                <p><strong>500 - Error Interno</strong>: Problema al consultar los logs.</p>
+                <pre><code class="language-javascript">{ "error": "Internal server error" }</code></pre>
+                <h4>Notas</h4>
+                <ul>
+                    <li>Los logs se limitan a los últimos 5 minutos para evitar sobrecarga.</li>
+                    <li>Este endpoint es útil para monitoreo en tiempo real de integraciones.</li>
+                    <li>Requiere permisos de plataforma válidos.</li>
+                </ul>
+            </div>
+        </div>
+<!-- FIN DEL FRAGMENTO: SECCIÓN OBTENER ORDEN -->
+    
+    <section id="responses">
+      <h3 id="requests">4. Callbacks</h3>
+        <p>Esta sección describe las peticiones que Smartfran realizará hacia la plataforma tercera para notificar cambios de estado y obtener datos de configuración.</p>
+<div class="endpoint-card">
+    <header class="endpoint-header"><h4>4.1 Manejo de Callbacks</h4></header>
+  <div class="endpoint-body">
+        <p>Es necesaria la implementacion de endpoints seguros ara las solicitudes POST que SmartPedidos envía a su plataforma para notificar cambios de estado.</p>
+        <h4>Autenticación en Callbacks</h4>
+        <p>Smartfran enviará los callbacks usando el método de autenticación configurado (token o credenciales básicas). Su endpoint debe validar la autenticación antes de procesar la solicitud.</p>
+
+        <h4>Manejo de Errores en Callbacks</h4>
+        <ul>
+            <li><strong>Respuesta Exitosa</strong>: Devuelva HTTP 200 OK para confirmar recepción. Smartfran no reintenta si recibe 200.</li>
+            <li><strong>Errores Temporales</strong>: Si su sistema está temporalmente indisponible, devuelva 5xx. Smartfran puede reintentar (depende de la configuración).</li>
+            <li><strong>Errores Permanentes</strong>: Para errores de validación (4xx), Smartfran no reintenta. Registre el error para depuración.</li>
+            <li><strong>Timeouts</strong>: Las solicitudes tienen un timeout de 30 segundos. Procese rápidamente para evitar fallos.</li>
+        </ul>
+        <h4>Logs de Errores</h4>
+        <p>Use el endpoint <code>/getLogs</code> para obtener logs de errores de los últimos 5 minutos. Esto ayuda en la depuración de integraciones.</p>
+  </div>
+    </div>     
+       <!-- INICIO DEL FRAGMENTO: SECCIÓN VALIDACIÓN -->
+<div class="endpoint-card">
+    <header class="endpoint-header">
+        <h4>4.2 Validación</h4>
+    </header>
+    <div class="endpoint-body">
+        <p>Existen dos formas de validar los datos contra una plataforma nueva:</p>
+        
+        <p><strong>1. Autenticación por Token</strong></p>
+        <p>Se registra un token en el Backoffice y se envía en el cuerpo (body) de la petición junto con los datos.</p>
+        
+        <h4>Estructura y Llamada</h4>
+        <pre><code class="language-javascript">
+// El body de la petición incluye el Token y el IdPedido
+const body = {
+  Token: "el_token_registrado",
+  IdPedido: 1245
+};
+
+// Las cabeceras deben especificar el Content-Type
+const headers = {
+  'Content-Type': 'application/json'
+};
+
+// Llamada de ejemplo con Axios
+axios.post(url, body, { headers: headers });
+        </code></pre>
+        
+        <h4>Ejemplo Concreto</h4>
+        <pre><code class="language-javascript">
+axios.post("https://.../test/CancelarPedido", 
+  { 
+    Token: "Test1112", 
+    IdPedido: 1245 
+  }, 
+  { 
+    headers: { 'Content-Type': 'application/json' } 
+  }
+);
+        </code></pre>
+
+        <p style="margin-top: 2em;"><strong>2. Autenticación por AuthData (Autenticación Básica)</strong></p>
+        <p>Se utilizan credenciales de usuario y contraseña que se envían directamente en la configuración de la petición.</p>
+
+        <h4>Estructura y Llamada</h4>
+        <pre><code class="language-javascript">
+// Credenciales de autenticación
+const auth = { 
+  username: "nombre_de_usuario", 
+  password: "la_contraseña"
+};
+
+// El body de la petición solo contiene los datos del pedido
+const body = { 
+  IdPedido: 1245 
+};
+              
+// Llamada de ejemplo con Axios, pasando el objeto 'auth'
+axios.post(url, body, { auth: auth });
+        </code></pre>
+
+        <h4>Ejemplo Concreto</h4>
+        <pre><code class="language-javascript">
+axios.post("https://.../test/CancelarPedido",
+  { 
+    IdPedido: 1245 
+  }, 
+  { 
+    auth: { 
+      username: "SmartfranPlatform",
+      password: "testpass"
+    }
+  }
+);
+        </code></pre>
+      
+       
+    </div>
+</div>
+<!-- FIN DEL FRAGMENTO: SECCIÓN VALIDACIÓN -->
+
+      <!-- INICIO DEL FRAGMENTO: SECCIÓN NOTIFICACIÓN DE ESTADOS -->
+<div class="endpoint-card">
+    <header class="endpoint-header">
+        <h4>4.3 Notificación de Estados</h4>
+    </header>
+    <div class="endpoint-body">
+        <p>Para cada cambio de estado de un pedido, el Concentrador ejecutará una petición <code>POST</code> a un endpoint específico en la <code>urlBase</code> de la plataforma tercera. La autenticación puede ser por cualquiera de los dos métodos definidos anteriormente (Token o AuthData).</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Estado</th>
+                    <th>Endpoint</th>
+                    <th>Body Esperado</th>
+                    <th>Disparador (Trigger)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>1. Recibido</strong></td>
+                    <td><code>urlBase + 'RecibirPedido'</code></td>
+                    <td><pre><code class="language-javascript">{ "IdPedido": 123 }</code></pre></td>
+                    <td>Se ejecuta cuando la orden llega al POS.</td>
+                </tr>
+                <tr>
+                    <td><strong>2. Visto</strong></td>
+                    <td><code>urlBase + 'VistarPedido'</code></td>
+                    <td><pre><code class="language-javascript">{ "IdPedido": 123 }</code></pre></td>
+                    <td>Se ejecuta cuando el operador selecciona la orden en el POS.</td>
+                </tr>
+                <tr>
+                    <td><strong>3. Confirmado</strong></td>
+                    <td><code>urlBase + 'ConfirmarPedido'</code></td>
+                    <td><pre><code class="language-javascript">{ "IdPedido": 123, "Demora": 15 }</code></pre></td>
+                    <td>Se ejecuta cuando el operador confirma la orden en el POS. El campo <code>Demora</code> representa el ID del tiempo de entrega seleccionado.</td>
+                </tr>
+                <tr>
+                    <td><strong>4. Cancelado</strong></td>
+                    <td><code>urlBase + 'CancelarPedido'</code></td>
+                    <td><pre><code class="language-javascript">{ "IdPedido": 123, "IdMotivo": 1 }</code></pre></td>
+                    <td>Se ejecuta cuando el operador cancela la orden en el POS.</td>
+                </tr>
+                <tr>
+                    <td><strong>5. Enviado</strong></td>
+                    <td><code>urlBase + 'EnviarPedido'</code></td>
+                    <td><pre><code class="language-javascript">{ "IdPedido": 123 }</code></pre></td>
+                    <td>Se ejecuta cuando el operador despacha la orden desde el POS.</td>
+                </tr>
+                <tr>
+                    <td><strong>6. Entregado</strong></td>
+                    <td><code>urlBase + 'EntregarPedido'</code></td>
+                    <td><pre><code class="language-javascript">{ "IdPedido": 123 }</code></pre></td>
+                    <td>Se ejecuta cuando el operador marca la orden como entregada en el POS.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- FIN DEL FRAGMENTO: SECCIÓN NOTIFICACIÓN DE ESTADOS -->
+<!-- FIN DEL FRAGMENTO: SECCIÓN NOTIFICACIÓN DE ESTADOS -->
+
+    <section id="problems">
+        <h2>5. Solución de Problemas</h2>
+        <p>Esta sección proporciona guías para resolver problemas comunes durante la integración con la API de Smartfran, incluyendo manejo de errores y callbacks.</p>
+
+        <h3>Errores Comunes en la API</h3>
+        <table>
+            <thead>
+                <tr><th>Código de Error</th><th>Descripción</th><th>Solución</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>401 - Unauthorized</td><td>Token inválido, expirado o sin permisos.</td><td>Verifique que el token sea válido y no haya expirado (24 horas). Asegúrese de que el thirdPartyId y thirdPartySecret sean correctos.</td></tr>
+                <tr><td>400 - Bad Request (Orden ya creada)</td><td>La orden con el ID especificado ya existe.</td><td>Use un ID único para cada orden. Verifique el campo <code>id</code> en el body.</td></tr>
+                <tr><td>404 - Not Found</td><td>Orden no encontrada para cancelar o consultar.</td><td>Confirme que el ID de la orden sea correcto y que la orden haya sido creada previamente.</td></tr>
+                <tr><td>400 - Bad Request (Orden ya procesada)</td><td>Intento de cancelar una orden que ya está en proceso o completada.</td><td>Las órdenes solo pueden cancelarse si están en estado PENDING. Verifique el estado antes de intentar cancelar.</td></tr>
+                <tr><td>400 - Insuficient parameters</td><td>Faltan parámetros requeridos en la solicitud.</td><td>Asegúrese de incluir todos los campos obligatorios: thirdPartyId/thirdPartySecret para login, id/branchId para cancelar.</td></tr>
+                <tr><td>200 - Platform not active</td><td>La plataforma está desactivada en el backoffice.</td><td>Contacte al administrador de Smartfran para activar la plataforma.</td></tr>
+            </tbody>
+        </table>
+
+       
+    </section>
+
+
+  <!-- Scripts para funcionalidad (resaltado de sintaxis) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Activar el resaltado de sintaxis de Prism
+      Prism.highlightAll();
+    });
+  </script>
+
+</body>
+</html>
