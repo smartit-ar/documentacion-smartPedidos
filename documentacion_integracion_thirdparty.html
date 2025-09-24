@@ -517,60 +517,7 @@
     </div>
 </div>
       
-       <div class="endpoint-card">
-            <header class="endpoint-header"><h4>3.5. Obtener Logs de Errores</h4></header>
-            <div class="endpoint-body">
-                <p>Permite obtener un listado de logs de errores generados en los últimos 5 minutos. Útil para depuración y monitoreo de integraciones fallidas.</p>
-                <table>
-                    <tbody>
-                        <tr><td><strong>Endpoint</strong></td><td><code>/getLogs</code></td></tr>
-                        <tr><td><strong>Método</strong></td><td><code>GET</code></td></tr>
-                        <tr><td><strong>Header</strong></td><td><code>Authorization: Bearer ACCESS_TOKEN</code></td></tr>
-                    </tbody>
-                </table>
-                <h4>Respuesta Exitosa (200 OK)</h4>
-                <p>Retorna un array de objetos con logs de error. Los logs están ordenados por fecha descendente.</p>
-                <pre><code class="language-javascript">[
-  {
-    "id": "64f1a2b3c4d5e6f7g8h9i0j1",
-    "name": "Falló saveOrder thirdParty",
-    "message": "Platform not active",
-    "createdAt": "2025-09-21T15:05:00.000Z",
-    "plataform": "ThirdParty",
-    "level": "Warning",
-    "status": 401,
-    "stack": "Error: Platform not active\n    at saveOrder (/api/src/controllers/thirdParty.js:156:15)\n    ..."
-  }
-]</code></pre>
-                <h4>Diccionario de Campos en la Respuesta</h4>
-                <table>
-                    <thead>
-                        <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td><code>id</code></td><td>String</td><td>ID único del log en la base de datos.</td></tr>
-                        <tr><td><code>name</code></td><td>String</td><td>Nombre descriptivo del error (basado en el mensaje del log).</td></tr>
-                        <tr><td><code>message</code></td><td>String</td><td>Detalle del mensaje de error.</td></tr>
-                        <tr><td><code>createdAt</code></td><td>String</td><td>Fecha y hora ISO 8601 de creación del log.</td></tr>
-                        <tr><td><code>plataform</code></td><td>String</td><td>Nombre de la plataforma asociada al error (ej. "ThirdParty").</td></tr>
-                        <tr><td><code>level</code></td><td>String</td><td>Nivel del log (siempre "Warning" en este endpoint).</td></tr>
-                        <tr><td><code>status</code></td><td>Number</td><td>Código de estado HTTP asociado (generalmente 401).</td></tr>
-                        <tr><td><code>stack</code></td><td>String</td><td>Pila de llamadas del error para depuración.</td></tr>
-                    </tbody>
-                </table>
-                <h4>Respuestas de Error</h4>
-                <p><strong>401 - No Autorizado</strong>: Token inválido o expirado.</p>
-                <pre><code class="language-javascript">{ "message": "Invalid token." }</code></pre>
-                <p><strong>500 - Error Interno</strong>: Problema al consultar los logs.</p>
-                <pre><code class="language-javascript">{ "error": "Internal server error" }</code></pre>
-                <h4>Notas</h4>
-                <ul>
-                    <li>Los logs se limitan a los últimos 5 minutos para evitar sobrecarga.</li>
-                    <li>Este endpoint es útil para monitoreo en tiempo real de integraciones.</li>
-                    <li>Requiere permisos de plataforma válidos.</li>
-                </ul>
-            </div>
-        </div>
+      
 <!-- FIN DEL FRAGMENTO: SECCIÓN OBTENER ORDEN -->
     
     <section id="responses">
@@ -590,8 +537,7 @@
             <li><strong>Errores Permanentes</strong>: Para errores de validación (4xx), Smartfran no reintenta. Registre el error para depuración.</li>
             <li><strong>Timeouts</strong>: Las solicitudes tienen un timeout de 30 segundos. Procese rápidamente para evitar fallos.</li>
         </ul>
-        <h4>Logs de Errores</h4>
-        <p>Use el endpoint <code>/getLogs</code> para obtener logs de errores de los últimos 5 minutos. Esto ayuda en la depuración de integraciones.</p>
+
   </div>
     </div>     
        <!-- INICIO DEL FRAGMENTO: SECCIÓN VALIDACIÓN -->
