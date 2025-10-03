@@ -209,8 +209,8 @@
       <p><b>Método:</b> <code>POST</code></p>
       <p><b>Endpoints:</b></p>
       <ul>
-        <li><b>Test:</b> <code>https://smartfran-cloud-platform-dev.azurewebsites.net/api/v1/Security/token</code></li>
-        <li><b>Prod:</b> <code>https://smartfran-cloud.us.auth0.com/oauth/token</code></li>
+        <li><b>Test:</b> <code>{url}/api/v1/Security/token</code></li>
+        <li><b>Prod:</b> <code>{url}/oauth/token</code></li>
       </ul>
       <p><b>Cuerpo (Body) de la solicitud:</b></p>
       <b>Test:</b>
@@ -218,7 +218,7 @@
 {
     "client_id": "xxx",
     "client_secret": "xxx",
-    "audience": "https://smartfran-cloud-catalog.azurewebsites.net/"
+    "audience": "{url}"
 }
       </code></pre>
       <b>Prod:</b>
@@ -226,8 +226,8 @@
 {
     "client_id": "xxx",
     "client_secret": "xxx",
-    "audience": "smartfran-cloud-prod",
-    "grant_type": "client_credentials"
+    "audience": "xxx",
+    "grant_type": "xxx"
 }
       </code></pre>
 
@@ -236,8 +236,8 @@
       <p><b>Método:</b> <code>GET</code></p>
       <p><b>Endpoints:</b></p>
       <ul>
-          <li><b>Test:</b> <code>https://smartfran-cloud-business-test.azurewebsites.net/api/v1/IntegratedEntity/GetAccessTokenMPByUser/{user_id}</code></li>
-          <li><b>Prod:</b> <code>https://smartfran-cloud-business-pro.azurewebsites.net/api/v1/IntegratedEntity/GetAccessTokenMPByUser/{user_id}</code></li>
+          <li><b>Test:</b> <code>{url}/api/v1/IntegratedEntity/GetAccessTokenMPByUser/{user_id}</code></li>
+          <li><b>Prod:</b> <code>{url}/api/v1/IntegratedEntity/GetAccessTokenMPByUser/{user_id}</code></li>
       </ul>
       <p><b>Encabezados (Headers):</b></p>
       <pre><code>
