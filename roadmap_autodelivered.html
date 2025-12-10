@@ -1,0 +1,540 @@
+​<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto: Automatización de Flujo de Órdenes I+D (AutoDelivered)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <style>
+        /* --- Variables y Reset --- */
+        :root {
+            --primary-color: #0056b3; /* Azul Profesional */
+            --primary-light: #e6f0fa;
+            --text-dark: #1f2937;
+            --text-light: #4b5563;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --border-color: #e5e7eb;
+            --code-bg: #1e1e1e;
+            --code-text: #d4d4d4;
+            --accent-green: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Layout Principal --- */
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr; /* Sidebar + Contenido */
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        /* --- Header --- */
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        /* --- Sidebar (Indice) --- */
+        .sidebar {
+            position: sticky;
+            top: 6rem; /* Ajuste por el header */
+            height: calc(100vh - 8rem);
+            overflow-y: auto;
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        /* --- Contenido --- */
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        section {
+            background: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            border: 1px solid var(--border-color);
+            scroll-margin-top: 7rem; /* Para que el sticky header no tape el titulo */
+        }
+
+        /* --- Tipografía y Elementos --- */
+        h2 {
+            font-size: 1.75rem;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+
+        strong {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        /* --- Bloques de Código --- */
+        .code-container {
+            background-color: var(--code-bg);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        pre {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: var(--code-text);
+            margin: 0;
+        }
+
+        .json-key { color: #9cdcfe; }
+        .json-string { color: #ce9178; }
+        .json-number { color: #b5cea8; }
+
+        /* --- Tablas --- */
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        thead {
+            background-color: var(--primary-light);
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-light);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #fafafa;
+        }
+
+        /* --- Checklists --- */
+        .checklist {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .checklist li {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .checklist li::before {
+            content: '✔';
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+
+        /* --- Roadmap Timeline Style --- */
+        .timeline-item {
+            border-left: 3px solid var(--primary-color);
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-item h4 {
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: var(--bg-card);
+            border: 3px solid var(--primary-color);
+            border-radius: 50%;
+            position: absolute;
+            left: -7.5px;
+            top: 4px;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none; /* Ocultar sidebar en móviles */
+            }
+            header {
+                position: relative;
+            }
+            section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Proyecto: Automatización de Flujo de Órdenes I+D (AutoDelivered)</h1>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <h3>Índice de Contenido</h3>
+            <nav>
+                <ul>
+                    <li><a href="#intro">1. Introducción y Objetivos</a></li>
+                    <li><a href="#descripcion">2. Descripción Técnica</a></li>
+                    <li><a href="#responsabilidades">3. Responsabilidades</a></li>
+                    <li><a href="#estimacion">4. Estimación y Roadmap</a></li>
+                    <li><a href="#criterios">5. Criterios de Aceptación</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="content">
+
+            <section id="intro">
+                <h2>1. Introducción y Objetivos</h2>
+                <p>Este proyecto busca la automatización completa del ciclo de vida de las órdenes generadas por la plataforma de I+D (<strong>internalCode: 12 - SmartPedidos</strong>). Actualmente, estas órdenes requieren procesamiento manual; el nuevo flujo permitirá que se procesen como "Entregadas" de forma inmediata.</p>
+                
+                <h3>Objetivos Principales:</h3>
+                <ul>
+                    <li><strong>Automatización:</strong> Eliminar la intervención manual en el POS para órdenes I+D, en donde el ingreso de una orden.</li>
+                    <li><strong>Trazabilidad:</strong> Garantizar que el sistema registre los 6 pasos del ciclo de vida (traces) en la base de datos/Backoffice.</li>
+                    <li><strong>Confirmación Real:</strong> Implementar una comunicación bidireccional donde I+D solo reciba la confirmación final una vez que el POS haya facturado/cerrado la orden.</li>
+                </ul>
+            </section>
+
+            <section id="descripcion">
+                <h2>2. Descripción Técnica de la Solución</h2>
+
+                <h3>2.1 Disparador</h3>
+                <p>El proceso inicia cuando el equipo de I+D envía una orden con una estructura específica que indica su estado pre-aprobado.</p>
+                <p><strong>Condición:</strong> El payload de entrada debe contener el estado <code>DELIVERED</code>.</p>
+
+                <div class="code-container">
+<pre>{
+  <span class="json-key">"orderId"</span>: <span class="json-string">"ID_DE_LA_ORDEN"</span>,
+  <span class="json-key">"status"</span>: <span class="json-string">"DELIVERED"</span>,
+  <span class="json-key">"timestamp"</span>: <span class="json-string">"2025-12-10T17:26:09.000Z"</span>
+  <span class="json-text">// ... resto de datos de la orden</span>
+}</pre>
+                </div>
+
+                <h3>2.2 Flujo de Datos y Estados (Workflow)</h3>
+                <p>El siguiente flujo detalla el comportamiento “AutoDelivered” (ida y vuelta) necesario para asegurar la consistencia:</p>
+                <ol>
+                    <li>
+                        <strong>Ingreso y Simulación (SmartPedidos):</strong>
+                        <ul>
+                            <li>SmartPedidos recibe la orden I+D con estado <code>DELIVERED</code>.</li>
+                            <li>Internamente, crea la orden con estado inicial de "DELIVERY" (5).</li>
+                            <li><strong>Simulación de Traces:</strong> Genera automáticamente en base de datos los 6 hitos históricos para auditoría: <em>receive → view → confirm → ready → dispatch → delivery</em>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Comunicación al POS (SmartPedidos -> SQS -> POS):</strong>
+                        <ul>
+                            <li>SmartPedidos ignora los estados intermedios y envía únicamente el estado final "Delivered" (14) a la cola de AWS SQS.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Acción en Punto de Venta (POS On-Premise / POS Cloud):</strong>
+                        <ul>
+                            <li>El POS consume el mensaje de SQS.</li>
+                            <li>Detecta la instrucción y abre automáticamente la ventana de facturación.</li>
+                            <li>Confirma el cierre de la orden.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Confirmación de Retorno (POS -> SQS -> SmartPedidos):</strong>
+                        <ul>
+                            <li>Una vez facturado, el POS envía un mensaje de confirmación vía AWS SQS de vuelta a SmartPedidos.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Cierre del Ciclo (SmartPedidos -> I+D):</strong>
+                        <ul>
+                            <li>SmartPedidos recibe la confirmación del POS.</li>
+                            <li>SOLO ENTONCES, SmartPedidos ejecuta una petición AXIOS POST al endpoint de I+D para confirmar el éxito total de la operación.</li>
+                            <li><strong>Endpoint:</strong> <code>{urlBase}/EntregarPedido</code></li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <h3>2.3 Ejemplos:</h3>
+                <p><em>(Información no provista en el documento original)</em></p>
+            </section>
+
+            <section id="responsabilidades">
+                <h2>3. Responsabilidades por Componente</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 30%;">Componente</th>
+                                <th>Tareas de Desarrollo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>I+D (Externo)</strong></td>
+                                <td>
+                                    <ul>
+                                        <li>Ajustar envío de JSON con status: DELIVERED.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>SmartPedidos</strong></td>
+                                <td>
+                                    <ul>
+                                        <li>Lógica para detectar internalCode: 12 + status: DELIVERED.</li>
+                                        <li>Generador de 6 traces simulados.</li>
+                                        <li>Envío SQS (solo enviar estado final).</li>
+                                        <li>Escucha cierre de order/facturación del POS.</li>
+                                        <li>Integración Axios final hacia I+D.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>POS On-Premise</strong></td>
+                                <td>
+                                    <ul>
+                                        <li>Consumo de mensaje SQS "Delivered".</li>
+                                        <li>Automatización de apertura de ventana de facturación.</li>
+                                        <li>Disparo de confirmación hacia SQS post-facturación.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>POS Cloud</strong></td>
+                                <td>
+                                    <ul>
+                                        <li>Consumo de mensaje SQS "Delivered".</li>
+                                        <li>Automatización de apertura de ventana de facturación.</li>
+                                        <li>Disparo de confirmación hacia SQS post-facturación.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="estimacion">
+                <h2>4. Estimación y Roadmap</h2>
+                <p>Para optimizar los tiempos, se plantea <strong>Desarrollo en Paralelo</strong>. Los equipos de SmartPedidos, POS On-Premise y POS Cloud trabajarán simultáneamente tras la fase de análisis.</p>
+
+                <h3>Resumen de Esfuerzo</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fase / Actividad</th>
+                                <th>Estimación</th>
+                                <th>Argumento / Cálculo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Análisis y Definición</td>
+                                <td>15 hs</td>
+                                <td>Documentación detallada de contratos (JSON/SQS), casos de borde y revisión con I+D. (3hs/día x 5 días).</td>
+                            </tr>
+                            <tr>
+                                <td>Gestión (Transversal)</td>
+                                <td>15 hs</td>
+                                <td>Reuniones de sincronización entre los 3 equipos de desarrollo y QA.</td>
+                            </tr>
+                            <tr>
+                                <td>Desarrollo SmartPedidos</td>
+                                <td>15 hs</td>
+                                <td>Implementación de lógica de simulación de traces, SQS in/out y Axios final.</td>
+                            </tr>
+                            <tr>
+                                <td>Desarrollo POS On-Premise</td>
+                                <td>25 hs</td>
+                                <td>Lógica compleja de UI (ventana de facturación) y manejo de estados.</td>
+                            </tr>
+                            <tr>
+                                <td>Desarrollo POS Cloud</td>
+                                <td>15 hs</td>
+                                <td>~50% del esfuerzo On-Premise.</td>
+                            </tr>
+                            <tr>
+                                <td>Testing & QA Integral</td>
+                                <td>20 hs</td>
+                                <td>Pruebas debido al flujo de ida y vuelta y validación.</td>
+                            </tr>
+                            <tr style="background-color: var(--primary-light); font-weight: bold;">
+                                <td>TOTAL ESFUERZO</td>
+                                <td>~105 hs</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Roadmap Cronológico</h3>
+                <div style="margin-top: 1.5rem;">
+                    <div class="timeline-item">
+                        <h4>Semana 1: Análisis, Diseño Técnico y Gestión</h4>
+                        <ul>
+                            <li>Definición final de Manejos en POS</li>
+                            <li>Definicion de JSON y flags.</li>
+                            <li>Acuerdo entre diferentes proyectos en SmartFran.</li>
+                            <li>Acuerdo con I+D.</li>
+                        </ul>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>Semanas 2 y 3: Desarrollo Simultáneo</h4>
+                        <ul>
+                            <li><strong>Equipo SmartPedidos:</strong> Finaliza en aprox. 1 semana.</li>
+                            <li><strong>Equipo POS Cloud:</strong> Finaliza en aprox. 1 semana.</li>
+                            <li><strong>Equipo POS On-Premise:</strong> Finaliza en 1 - 2 semanas (Marca el ritmo del proyecto).</li>
+                        </ul>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>Semana 4 y 5: QA y Despliegue</h4>
+                        <ul>
+                            <li>Pruebas de integración en ambiente de Staging.</li>
+                            <li>Validación de los 6 traces en BD.</li>
+                            <li>Prueba con Externos : I+D envía -> POS factura -> I+D recibe confirmación.</li>
+                        </ul>
+                    </div>
+                    <p><strong>Duración Total Estimada del Proyecto:</strong> 4 a 5 Semanas.</p>
+                </div>
+            </section>
+
+            <section id="criterios">
+                <h2>5. Criterios de Aceptación</h2>
+                <p>Funcionales (Checklist para QA):</p>
+                <ul class="checklist">
+                    <li>Orden I+D ingresa y se visualiza "Entregada" automáticamente.</li>
+                    <li>BD muestra los 6 traces históricos creados. El ultimo trace con Check.</li>
+                    <li>POS abre ventana de facturación sin intervención humana previa.</li>
+                    <li>SmartPedidos envía el POST a <code>{urlBase}/EntregarPedido</code> solo después de que el POS confirmó en la facturacion del pedido.</li>
+                </ul>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+</html>
