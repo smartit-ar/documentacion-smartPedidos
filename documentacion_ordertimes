@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación de Trazabilidad y Latencia: OrderTimes</title>
+    <style>
+        /* --- VARIABLES Y RESET --- */
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #004494;
+            --text-color: #333;
+            --bg-color: #f4f6f8;
+            --sidebar-width: 280px;
+            --code-bg: #1e1e1e;
+            --border-color: #ddd;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- LAYOUT PRINCIPAL --- */
+        header {
+            background-color: #fff;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .main-container {
+            display: flex;
+            margin-top: 60px;
+            height: calc(100vh - 60px);
+        }
+
+        /* --- SIDEBAR DE NAVEGACIÓN --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #fff;
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1rem;
+            overflow-y: auto;
+            position: fixed;
+            height: 100%;
+            top: 60px;
+        }
+
+        .sidebar ul { list-style: none; }
+        .sidebar li { margin-bottom: 0.5rem; }
+        
+        .sidebar a {
+            text-decoration: none;
+            color: #555;
+            font-size: 0.9rem;
+            display: block;
+            padding: 0.6rem 0.8rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #eef5ff;
+            color: var(--primary-color);
+            font-weight: 600;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .sidebar .sub-item { padding-left: 1.5rem; font-size: 0.85rem; }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .content {
+            margin-left: var(--sidebar-width);
+            padding: 3rem 4rem;
+            width: 100%;
+            overflow-y: auto;
+            background-color: #fff;
+            scroll-behavior: smooth;
+        }
+
+        .section { margin-bottom: 4rem; scroll-margin-top: 80px; }
+
+        h2 { 
+            font-size: 1.8rem; 
+            border-bottom: 2px solid #eee; 
+            padding-bottom: 0.5rem; 
+            margin-bottom: 1.5rem; 
+            color: #111;
+        }
+
+        h3 { 
+            font-size: 1.4rem; 
+            margin-top: 2rem; 
+            margin-bottom: 1rem; 
+            color: #2c3e50; 
+            display: flex;
+            align-items: center;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            color: #444;
+            font-weight: 600;
+        }
+
+        p { margin-bottom: 1rem; text-align: justify; }
+
+        /* --- TABLAS --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #444;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        tr:hover { background-color: #fcfcfc; }
+
+        /* --- BLOQUES DE CÓDIGO (JSON / JS) --- */
+        pre {
+            background-color: var(--code-bg);
+            color: #d4d4d4;
+            padding: 1.5rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1.5rem 0;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        /* Syntax Highlighting Classes */
+        .json-key { color: #9cdcfe; }
+        .json-string { color: #ce9178; }
+        .json-number { color: #b5cea8; }
+        .json-boolean { color: #569cd6; }
+        .json-comment { color: #6a9955; }
+        
+        /* JS Syntax */
+        .js-keyword { color: #c586c0; }
+        .js-function { color: #dcdcaa; }
+        .js-variable { color: #9cdcfe; }
+
+        /* --- UTILS --- */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            background-color: #6c757d;
+            margin-left: 10px;
+        }
+        .badge-new { background-color: #28a745; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .content { margin-left: 0; padding: 2rem; }
+            .main-container { margin-top: 60px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Modelo OrderTimes</h1>
+    </header>
+
+    <div class="main-container">
+        <!-- SIDEBAR -->
+        <nav class="sidebar">
+            <ul>
+                <li><a href="#objetivo">1. Objetivo y Necesidad</a></li>
+                <li><a href="#modelo-datos">2. Especificación de Modelo de Datos</a></li>
+                <li><a href="#estructura-db" class="sub-item">- Estructura (JSON)</a></li>
+                <li><a href="#definicion-variables" class="sub-item">- Definición de Variables</a></li>
+                <li><a href="#implementacion">3. Desglose de Implementación</a></li>
+                <li><a href="#analisis-tecnico">4. Análisis Técnico (Commit)</a></li>
+                <li><a href="#controllers" class="sub-item">- Controladores API</a></li>
+                <li><a href="#models" class="sub-item">- Modelo Mongoose</a></li>
+                <li><a href="#strategies" class="sub-item">- Estrategias y Plataformas</a></li>
+            </ul>
+        </nav>
+
+        <!-- CONTENIDO -->
+        <main class="content">
+
+            <!-- SECCIÓN 1 -->
+            <section id="objetivo" class="section">
+                <h2>1. Objetivo y Necesidad</h2>
+                <p>El objetivo principal es lograr la <strong>trazabilidad total del ciclo de vida de una orden</strong>, permitiendo medir dónde se consume el tiempo desde que una orden nace en una plataforma externa hasta que se acepta (Autoaceptacion).</p>
+                
+                <h4>Problemática</h4>
+                <p>No se distinguia claramente si la demora en una orden se debe a:</p>
+                <ul>
+                    <li>Latencia externa (Internet/Plataforma).</li>
+                    <li>Tiempo de procesamiento interno de SmartPedidos.</li>
+                    <li>Demora en la ejecución y respuesta del POS local.</li>
+                </ul>
+            </section>
+
+            <!-- SECCIÓN 2 -->
+            <section id="modelo-datos" class="section">
+                <h2>2. Especificación de Modelo de Datos</h2>
+                <p>Se crea la colección <code>ordertimes</code> para almacenar una estructura de dos niveles: <strong>Identidad</strong> y <strong>Hechos</strong>.</p>
+                <p>La base de datos solo almacenará los timestamps crudos (hechos).</p>
+
+                <h3 id="estructura-db">Estructura del Objeto (Persistencia en DB)</h3>
+<pre><code class="json-code">
+{
+  "_id": "6930358bc41baf321f2f9d9f",
+  // --- Identificadores ---
+  "order": "1808588793",        // ID remoto de la orden (ej: PedidosYa ID)
+  "branch": "4973",             // ID interno de la sucursal en SP
+  "platform": "PedidosYa",      // Nombre de la plataforma de origen
+  
+  // --- Eventos Reales (Hechos) ---
+  "latencyTimestamp": {
+    "platformDate": "2025-12-03T13:05:10.000Z",      // Creación original en la Plataforma
+    "entryDate": "2025-12-03T13:05:15.238Z",         // Llegada del request a SmartPedidos
+    "responseDate": "2025-12-03T13:05:15.691Z",      // Respuesta inicial (ACK 200) de SP
+    "sendSqsDate": "2025-12-03T13:05:16.100Z",       // Envío del mensaje a la cola del POS
+    "receiveSqsDate": "2025-12-03T13:05:40.500Z",    // Procesamiento de la respuesta del POS
+    "finalResponseDate": "2025-12-03T13:05:41.200Z"  // Confirmación final hacia la Plataforma
+  },
+  
+  // --- Auditoría ---
+  "createdAt": "2025-12-03T13:05:15.238Z",
+  "updatedAt": "2025-12-03T13:05:41.200Z"
+}
+</code></pre>
+
+                <h3 id="definicion-variables">Definición de Variables (Identificadores y Hechos)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Nivel</th>
+                            <th>Descripción Funcional</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>order</td>
+                            <td>Raíz</td>
+                            <td>ID único de la orden remota.</td>
+                        </tr>
+                        <tr>
+                            <td>branch</td>
+                            <td>Raíz</td>
+                            <td>ID de la sucursal en SmartPedidos.</td>
+                        </tr>
+                        <tr>
+                            <td>platform</td>
+                            <td>Raíz</td>
+                            <td>Nombre de la Plataforma (ej: PedidosYa, Rappi).</td>
+                        </tr>
+                        <tr>
+                            <td>platformDate</td>
+                            <td>latencyTimestamp</td>
+                            <td><strong>Generación:</strong> Fecha original reportada por la plataforma externa.</td>
+                        </tr>
+                        <tr>
+                            <td>entryDate</td>
+                            <td>latencyTimestamp</td>
+                            <td><strong>Ingreso:</strong> Momento exacto en que el Request impacta en el controlador de SP.</td>
+                        </tr>
+                        <tr>
+                            <td>responseDate</td>
+                            <td>latencyTimestamp</td>
+                            <td><strong>Respuesta API:</strong> Momento en que la API responde HTTP 200 OK.</td>
+                        </tr>
+                        <tr>
+                            <td>sendSqsDate</td>
+                            <td>latencyTimestamp</td>
+                            <td><strong>Envío Cola:</strong> Momento en que SP inyecta el mensaje en la cola SQS hacia el POS.</td>
+                        </tr>
+                        <tr>
+                            <td>receiveSqsDate</td>
+                            <td>latencyTimestamp</td>
+                            <td><strong>Recepción POS:</strong> Momento en que SP recibe la respuesta/actualización desde el POS.</td>
+                        </tr>
+                        <tr>
+                            <td>finalResponseDate</td>
+                            <td>latencyTimestamp</td>
+                            <td><strong>Cierre:</strong> Momento de la confirmación/aceptación final enviada a la Plataforma.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- SECCIÓN 3 -->
+            <section id="implementacion" class="section">
+                <h2>3. Desglose de Implementación</h2>
+                <p>Este desarrollo se divide en dos grandes áreas de trabajo:</p>
+                
+                <h4>Backend (Recolección de Hechos)</h4>
+                <ul>
+                    <li>Instrumentación de los controladores y servicios para capturar los 6 timestamps en tiempo real.</li>
+                    <li>Persistencia en la colección <code>ordertimes</code>.</li>
+                </ul>
+
+                <h4>Frontend (Visualización y Cálculo)</h4>
+                <ul>
+                    <li>Consultas al backend para obtener los periodos.</li>
+                    <li>Implementación de las fórmulas matemáticas en el cliente (diferencias de tiempo).</li>
+                    <li>Visualización gráfica (Barras de composición de latencia: Red vs SP vs POS).</li>
+                </ul>
+            </section>
+
+            <!-- SECCIÓN 4 -->
+            <section id="analisis-tecnico" class="section">
+                <h2>4. Análisis Técnico Detallado (Cambios en Código)</h2>
+                
+                <h3 id="controllers">Controladores de API (Webhooks)</h3>
+                <p>Se modificaron los controladores de entrada de todas las plataformas (MercadoPago, PedidosYa, UberEats, ThirdParty) para iniciar el registro de trazabilidad.</p>
+                
+                <p><strong>Cambio General:</strong></p>
+                <ul>
+                    <li>Se captura <code>entryDate</code> al inicio de la petición.</li>
+                    <li>Al confirmar la orden, se crea el documento en <code>orderTimeModel</code>.</li>
+                    <li>Se registra <code>sendSqsDate</code> obtenido del proceso de guardado.</li>
+                </ul>
+
+                <h4>Ejemplo en <code>api/src/controllers/peya.js</code></h4>
+<pre><code class="js-code">
+<span class="js-keyword">await</span> orderTimeModel.create({
+    entryDate: entryDate,
+    responseDate: <span class="js-keyword">new</span> Date(),
+    sendSqsDate: ordersSaved.sendSqsDate, <span class="json-comment">// Nuevo campo capturado</span>
+    platform: <span class="json-string">"PedidosYa"</span>,
+    branch: currentBranch.branchId,
+    order: orderId
+});
+</code></pre>
+
+                <h3 id="models">Modelo Mongoose (<code>orderTime.js</code>)</h3>
+                <p>Se reestructuró el esquema para soportar el objeto anidado <code>latencyTimestamp</code> y habilitar timestamps automáticos.</p>
+
+<pre><code class="js-code">
+<span class="js-keyword">const</span> orderTimeSchema = <span class="js-keyword">new</span> Schema({
+    order: { type: String },
+    branch: { type: String },
+    platform: { type: String },
+    
+    <span class="json-comment">// Nuevo Objeto de Hechos</span>
+    latencyTimestamp: {
+       type: Object
+    }
+}, {
+    strict: <span class="js-keyword">false</span>,
+    timestamps: <span class="js-keyword">true</span> <span class="json-comment">// Habilitado createdAt / updatedAt</span>
+});
+</code></pre>
+
+                <h3 id="strategies">Estrategias y Plataformas (Procesamiento Asíncrono)</h3>
+                
+                <h4>Captura de Envío a SQS</h4>
+                <p>En <code>api/src/platforms/management/platform.js</code>, se añade el timestamp justo después de enviar el mensaje a la cola:</p>
+<pre><code class="js-code">
+<span class="js-keyword">await</span> <span class="js-keyword">this</span>.aws.pushAutoReplyToQueue(savedNews._id, branch.branchId);
+orderProccessed.sendSqsDate = <span class="js-keyword">new</span> Date(); <span class="json-comment">// Captura exacta</span>
+</code></pre>
+
+                <h4>Captura de Recepción y Cierre</h4>
+                <p>En <code>receiveStrategy.js</code> y los archivos de gestión de plataforma (ej: <code>pedidosYa.js</code>), se propaga la fecha de inicio de procesamiento del mensaje SQS.</p>
+<pre><code class="js-code">
+<span class="json-comment">// receiveStrategy.js</span>
+<span class="js-keyword">let</span> dateSQS = <span class="js-keyword">new</span> Date(); <span class="json-comment">// Inicio de procesamiento POS</span>
+<span class="js-keyword">const</span> platformResult = <span class="js-keyword">await</span> <span class="js-keyword">this</span>.platform.receiveOrder(<span class="js-keyword">this</span>.savedNew.order, dateSQS);
+
+<span class="json-comment">// pedidosYa.js (receiveOrder)</span>
+<span class="js-keyword">await</span> orderTimeModel.updateOne(
+   { order: orderId },
+   { 
+     $set: { 
+       <span class="json-string">'latencyTimestamp.receiveSqsDate'</span>: dateSQS,
+       <span class="json-string">'latencyTimestamp.finalResponseDate'</span>: <span class="js-keyword">new</span> Date() 
+     } 
+   }
+);
+</code></pre>
+
+                <div class="card" style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                    <strong>Nota Importante:</strong> La plataforma <code>rappi.js</code> fue modificada para aceptar el parámetro <code>dateSQS</code>, pero la actualización del modelo <code>orderTimeModel</code> aún no ha sido implementada en este commit.
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- SCRIPT SIMULACIÓN SYNTAX HIGHLIGHTING -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const codeBlocks = document.querySelectorAll(".json-code");
+            
+            codeBlocks.forEach(block => {
+                let html = block.innerText;
+                // Strings (Claves y Valores)
+                html = html.replace(/"(.*?)":/g, '<span class="json-key">"$1"</span>:'); 
+                html = html.replace(/: "(.*?)"/g, ': <span class="json-string">"$1"</span>');
+                // Comentarios
+                html = html.replace(/(\/\/.*)/g, '<span class="json-comment">$1</span>');
+                block.innerHTML = html;
+            });
+        });
+    </script>
+</body>
+</html>
