@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación de Mapeo de Órdenes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #e4e4e7;
+            background: #18181b;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #27272a;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            padding: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: #60a5fa;
+            font-size: 24px;
+            margin: 30px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3f3f46;
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #93c5fd;
+            font-size: 20px;
+            margin: 25px 0 12px 0;
+        }
+
+        h4 {
+            color: #bfdbfe;
+            font-size: 17px;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #d4d4d8;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+            color: #d4d4d8;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        strong, b {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        code {
+            background: #1e1e1e;
+            color: #ce9178;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid #3f3f46;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'JSON';
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: #3f3f46;
+            color: #a1a1aa;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #d4d4d8;
+        }
+
+        .json-key {
+            color: #9cdcfe;
+        }
+
+        .json-string {
+            color: #ce9178;
+        }
+
+        .json-number {
+            color: #b5cea8;
+        }
+
+        .json-boolean {
+            color: #569cd6;
+        }
+
+        .json-null {
+            color: #569cd6;
+        }
+
+        .json-bracket {
+            color: #ffd700;
+        }
+
+        .json-comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #3f3f46;
+            margin: 30px 0;
+        }
+
+        .note {
+            background: #1e293b;
+            border-left: 4px solid #60a5fa;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .note p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Documentación de Mapeo de Órdenes: detailsMapperParseOther</h1>
+            <p>Proceso de transformación de órdenes de PedidosYa al formato interno del sistema</p>
+        </div>
+        
+        <div class="content">
+            <p>Este documento describe la lógica utilizada para procesar y transformar los items de una orden proveniente de PedidosYa hacia el formato interno del sistema (News). El objetivo es clarificar cómo se interpretan los productos, combos/promos y sus modificaciones para analistas y usuarios.</p>
+
+            <h2>Objetivo del Proceso</h2>
+            <p>La función <code>detailsMapperParseOther</code> tiene como responsabilidad tomar la lista de productos brutos de una orden de PedidosYa <code>Order</code> y convertirlos en una estructura <code>News</code>, para diferenciar correctamente entre productos individuales y combos con sus respectivos componentes y personalizaciones.</p>
+
+            <hr>
+
+            <h2>Estructura de Entrada (Order)</h2>
+            <p>El proceso recibe una lista de productos (<code>products</code>) dentro de la orden. Cada producto tiene atributos clave que determinan cómo será procesado.</p>
+
+            <h3>Atributos del Producto</h3>
+            <ul>
+                <li><strong>name</strong>: El nombre del producto. Utilizado para determinar si es un producto simple o un combo.</li>
+                <li><strong>remoteCode</strong>: Código identificador (SKU). Se utiliza para validación y vinculación de componentes.</li>
+                <li><strong>selectedToppings</strong>: Lista de grupos de opciones seleccionadas.
+                    <ul>
+                        <li><strong>children</strong>: Las opciones específicas elegidas dentro de un grupo (ej: "Sin lechuga", "Extra carne", "Coca Cola").
+                            <ul>
+                                <li><strong>remoteCode</strong>: Utilizado para la lógica de combos (vincula extras con sus ítems principales).</li>
+                                <li><strong>name</strong>: Utilizado para detectar eliminaciones en productos simples (ej: "Sin...").</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <hr>
+
+            <h2>Reglas de Negocio y Lógica de Mapeo</h2>
+            <p>El sistema clasifica cada ítem de la orden en dos categorías principales basándose en su nombre: <strong>COMBO/PROMOCION</strong> o <strong>PRODUCTO</strong>.</p>
+
+            <h3>1. Detección y Procesamiento de COMBOS</h3>
+            <p>Un producto se considera un <strong>COMBO/PROMOCION</strong> si su nombre (en minúsculas) comienza con alguna de las siguientes palabras:</p>
+            <ul>
+                <li><code>"promo"</code></li>
+                <li><code>"combo"</code></li>
+                <li><code>"hamburguesa"</code></li>
+            </ul>
+
+            <h4>Estructura Resultante para Combos</h4>
+            <ul>
+                <li><strong>Tipo</strong>: <code>COMBO</code>/ <code>PROMOCION</code></li>
+                <li><strong>Precio</strong>: Se calcula sumando el precio base del combo + la suma de los precios de los componentes seleccionados ( Ej: Adicional Helado , Adicional Cerveza).</li>
+            </ul>
+
+            <h4>Tratamiento de Componentes del Combo (Sub-ítems)</h4>
+            <p>Dentro de un combo, las opciones (<code>children</code>) se analizan por su <code>remoteCode</code> para distinguir entre un componente principal y una modificación (Extra u Opcional - "Sin" -).</p>
+
+            <ol>
+                <li><strong>Componentes Principales (Items incluidos)</strong>:
+                    <ul>
+                        <li>Son las opciones cuyo <code>remoteCode</code> <strong>NO</strong> contiene el caracter <code>+</code>.</li>
+                        <li>Se añaden a la lista de <code>includedItems</code> del combo.</li>
+                        <li>Su precio se suma al precio total del combo.</li>
+                    </ul>
+                </li>
+                <li><strong>Modificaciones (Extras y Eliminaciones)</strong>:
+                    <ul>
+                        <li>Son opciones cuyo <code>remoteCode</code> <strong>SÍ</strong> contiene el caracter <code>+</code>.</li>
+                        <li><strong>Formato Requerido del RemoteCode</strong>: Para que el sistema sepa a qué componente pertenece el extra, el código debe seguir una lógica de vinculación (ej: contener el SKU del padre).</li>
+                        <li><strong>Identificación</strong>:
+                            <ul>
+                                <li>Termina en <strong><code>E</code></strong>: Se considera un <strong>Extra</strong> (agregado).</li>
+                                <li>Termina en <strong><code>O</code></strong>: Se considera una <strong>Opcional</strong> (Sin).</li>
+                            </ul>
+                        </li>
+                        <li><strong>Acción</strong>: El sistema busca el componente padre en la lista de <code>includedItems</code> (usando el SKU extraído del código) y le adjunta esta modificación en su respectiva lista (<code>extras</code> o <code>removedComponents</code>).</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3>2. Detección y Procesamiento de PRODUCTOS SIMPLES</h3>
+            <p>Cualquier producto que NO cumpla con los criterios de nombre de Combo se trata como <strong>PRODUCTO SIMPLE</strong>.</p>
+
+            <h4>Estructura Resultante para Productos Simples</h4>
+            <ul>
+                <li><strong>Tipo</strong>: <code>PRODUCT</code></li>
+                <li><strong>Precio</strong>: Precio unitario directo del producto.</li>
+                <li><strong>Items Incluidos</strong>: <code>null</code> (no tiene sub-ítems, solo personalizaciones).</li>
+            </ul>
+
+            <h4>Tratamiento de Toppings/Opciones</h4>
+            <p>Las opciones seleccionadas se clasifican puramente por su nombre:</p>
+
+            <ol>
+                <li><strong>Componentes Opcionales (Sin)</strong>:
+                    <ul>
+                        <li>Si el nombre de la opción comienza con la palabra <strong><code>"sin"</code></strong> (insensible a mayúsculas/minúsculas).</li>
+                        <li>Se añade a la lista <code>customizations.removedComponents</code>.</li>
+                    </ul>
+                </li>
+                <li><strong>Extras/Agregados</strong>:
+                    <ul>
+                        <li>Cualquier otra opción que no empiece con "sin".</li>
+                        <li>Se añade a la lista <code>customizations.extras</code>.</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <hr>
+
+            <h2>Ejemplo de Transformación</h2>
+            <p>A continuación se muestra cómo un JSON de entrada se transforma en el formato de salida, ilustrando los casos de Combo y sus lógicas.</p>
+
+            <h3>Entrada (Pedido de PedidosYa)</h3>
+            <div class="code-block">
+                <pre><span class="json-bracket">{</span>
+  <span class="json-key">"products"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+    <span class="json-bracket">{</span>
+      <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Combo - Smack + Bebida"</span><span class="json-bracket">,</span>
+      <span class="json-key">"remoteCode"</span><span class="json-bracket">:</span> <span class="json-string">"20060"</span><span class="json-bracket">,</span>
+      <span class="json-key">"unitPrice"</span><span class="json-bracket">:</span> <span class="json-string">"940"</span><span class="json-bracket">,</span>
+      <span class="json-key">"selectedToppings"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+        <span class="json-bracket">{</span>
+          <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Smack"</span><span class="json-bracket">,</span>
+          <span class="json-key">"children"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+            <span class="json-bracket">{</span>
+              <span class="json-key">"remoteCode"</span><span class="json-bracket">:</span> <span class="json-string">"60"</span><span class="json-bracket">,</span>
+              <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Smack"</span><span class="json-bracket">,</span>
+              <span class="json-key">"price"</span><span class="json-bracket">:</span> <span class="json-string">"0"</span><span class="json-bracket">,</span>
+              <span class="json-key">"quantity"</span><span class="json-bracket">:</span> <span class="json-number">1</span>
+            <span class="json-bracket">}</span>
+          <span class="json-bracket">]</span>
+        <span class="json-bracket">},</span>
+        <span class="json-bracket">{</span>
+          <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Bebida"</span><span class="json-bracket">,</span>
+          <span class="json-key">"children"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+            <span class="json-bracket">{</span>
+              <span class="json-key">"remoteCode"</span><span class="json-bracket">:</span> <span class="json-string">"404"</span><span class="json-bracket">,</span>
+              <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Patagonia Amber Lager"</span><span class="json-bracket">,</span>
+              <span class="json-key">"price"</span><span class="json-bracket">:</span> <span class="json-string">"100"</span>
+            <span class="json-bracket">}</span>
+          <span class="json-bracket">]</span>
+        <span class="json-bracket">},</span>
+        <span class="json-bracket">{</span>
+            <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Extras"</span><span class="json-bracket">,</span>
+            <span class="json-key">"children"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+              <span class="json-bracket">{</span>
+                <span class="json-key">"remoteCode"</span><span class="json-bracket">:</span> <span class="json-string">"17+60E"</span><span class="json-bracket">,</span> 
+                <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Extra Carne"</span><span class="json-bracket">,</span>
+                <span class="json-key">"price"</span><span class="json-bracket">:</span> <span class="json-string">"60"</span>
+              <span class="json-bracket">}</span>
+              <span class="json-comment">// Nótese el '60' en el código, vinculándolo con la Smack (SKU 60)</span>
+            <span class="json-bracket">]</span>
+        <span class="json-bracket">},</span>
+        <span class="json-bracket">{</span>
+            <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Quitar Ingredientes"</span><span class="json-bracket">,</span>
+            <span class="json-key">"children"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+              <span class="json-bracket">{</span>
+                <span class="json-key">"remoteCode"</span><span class="json-bracket">:</span> <span class="json-string">"7+60O"</span><span class="json-bracket">,</span>
+                <span class="json-key">"name"</span><span class="json-bracket">:</span> <span class="json-string">"Sin Bacon"</span><span class="json-bracket">,</span>
+                <span class="json-key">"price"</span><span class="json-bracket">:</span> <span class="json-string">"0"</span>
+              <span class="json-bracket">}</span>
+              <span class="json-comment">// Nótese el 'O' al final, indicando eliminación</span>
+            <span class="json-bracket">]</span>
+        <span class="json-bracket">}</span>
+      <span class="json-bracket">]</span>
+    <span class="json-bracket">}</span>
+  <span class="json-bracket">]</span>
+<span class="json-bracket">}</span></pre>
+            </div>
+
+            <h3>Salida (Estructura Interna - News)</h3>
+            <p>El sistema detecta "Combo" en el nombre, identifica "Smack" y "Patagonia" como componentes principales. Detecta "Extra Carne" (termina en E, linkeado al sku 60) y "Sin Bacon" (termina en O, linkeado al sku 60) y los anida dentro de "Smack".</p>
+
+            <div class="code-block">
+                <pre><span class="json-bracket">{</span>
+  <span class="json-key">"details"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+    <span class="json-bracket">{</span>
+      <span class="json-key">"itemType"</span><span class="json-bracket">:</span> <span class="json-string">"COMBO"</span><span class="json-bracket">,</span>
+      <span class="json-key">"itemDescription"</span><span class="json-bracket">:</span> <span class="json-string">"Combo - Smack + Bebida"</span><span class="json-bracket">,</span>
+      <span class="json-key">"sku"</span><span class="json-bracket">:</span> <span class="json-string">"20060"</span><span class="json-bracket">,</span>
+      <span class="json-key">"price"</span><span class="json-bracket">:</span> <span class="json-number">1040</span><span class="json-bracket">,</span> <span class="json-comment">// 940 (base) + 100 (Patagonia)</span>
+      <span class="json-key">"includedItems"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+        <span class="json-bracket">{</span>
+          <span class="json-key">"itemType"</span><span class="json-bracket">:</span> <span class="json-string">"PRODUCT"</span><span class="json-bracket">,</span>
+          <span class="json-key">"itemDescription"</span><span class="json-bracket">:</span> <span class="json-string">"Smack"</span><span class="json-bracket">,</span>
+          <span class="json-key">"sku"</span><span class="json-bracket">:</span> <span class="json-string">"60"</span><span class="json-bracket">,</span>
+          <span class="json-key">"customizations"</span><span class="json-bracket">:</span> <span class="json-bracket">{</span>
+            <span class="json-key">"extras"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+              <span class="json-bracket">{</span>
+                <span class="json-key">"itemType"</span><span class="json-bracket">:</span> <span class="json-string">"COMPONENT"</span><span class="json-bracket">,</span>
+                <span class="json-key">"itemDescription"</span><span class="json-bracket">:</span> <span class="json-string">"Extra Carne"</span><span class="json-bracket">,</span>
+                <span class="json-key">"price"</span><span class="json-bracket">:</span> <span class="json-string">"60"</span>
+              <span class="json-bracket">}</span>
+            <span class="json-bracket">],</span>
+            <span class="json-key">"removedComponents"</span><span class="json-bracket">:</span> <span class="json-bracket">[</span>
+              <span class="json-bracket">{</span>
+                <span class="json-key">"itemType"</span><span class="json-bracket">:</span> <span class="json-string">"COMPONENT"</span><span class="json-bracket">,</span>
+                <span class="json-key">"itemDescription"</span><span class="json-bracket">:</span> <span class="json-string">"Sin Bacon"</span><span class="json-bracket">,</span>
+                <span class="json-key">"price"</span><span class="json-bracket">:</span> <span class="json-number">0</span>
+              <span class="json-bracket">}</span>
+            <span class="json-bracket">]</span>
+          <span class="json-bracket">}</span>
+        <span class="json-bracket">},</span>
+        <span class="json-bracket">{</span>
+          <span class="json-key">"itemType"</span><span class="json-bracket">:</span> <span class="json-string">"PRODUCT"</span><span class="json-bracket">,</span>
+          <span class="json-key">"itemDescription"</span><span class="json-bracket">:</span> <span class="json-string">"Patagonia Amber Lager"</span><span class="json-bracket">,</span>
+          <span class="json-key">"sku"</span><span class="json-bracket">:</span> <span class="json-string">"404"</span><span class="json-bracket">,</span>
+          <span class="json-key">"price"</span><span class="json-bracket">:</span> <span class="json-string">"100"</span><span class="json-bracket">,</span>
+          <span class="json-key">"customizations"</span><span class="json-bracket">:</span> <span class="json-bracket">{</span> <span class="json-key">"extras"</span><span class="json-bracket">:</span> <span class="json-bracket">[],</span> <span class="json-key">"removedComponents"</span><span class="json-bracket">:</span> <span class="json-bracket">[]</span> <span class="json-bracket">}</span>
+        <span class="json-bracket">}</span>
+      <span class="json-bracket">]</span>
+    <span class="json-bracket">}</span>
+  <span class="json-bracket">]</span>
+<span class="json-bracket">}</span></pre>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
