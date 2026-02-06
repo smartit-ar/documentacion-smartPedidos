@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,7 +54,8 @@
             color: #555;
         }
 
-        input {
+        input,
+        select {
             width: 100%;
             padding: 0.75rem;
             font-size: 1rem;
@@ -61,6 +63,7 @@
             border-radius: 6px;
             box-sizing: border-box;
             transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: white;
         }
 
         input:focus {
@@ -86,7 +89,7 @@
         button:hover:not(:disabled) {
             background-color: var(--primary-hover-color);
         }
-        
+
         button:disabled {
             background-color: #9dbfe8;
             cursor: not-allowed;
@@ -115,84 +118,159 @@
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <form id="pedidoForm">
-        <h2>Crear Pedido</h2>
+    <div class="container">
+        <form id="pedidoForm">
+            <h2>Crear Pedido</h2>
 
-        <div class="form-group">
-            <label for="branch">Branch ID</label>
-            <input type="number" id="branch" value="" required>
+            <div class="form-group">
+                <label for="branch">Branch ID</label>
+                <input type="number" id="branch" value="" required>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Nombre</label>
+                <input type="text" id="name" value="" required>
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Apellido</label>
+                <input type="text" id="lastName" value="" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tenant">Tenant</label>
+                <select id="tenant" required>
+                    <option value="grido">Grido</option>
+                    <option value="weiss">Weiss</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="platform">Plataforma</label>
+                <select id="platform" required>
+                    <option value="pedigrido">Pedigrido</option>
+                    <option value="pedidosya">PedidosYa</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="environment">Ambiente</label>
+                <select id="environment" required>
+                    <option value="S">S</option>
+                    <option value="P">P</option>
+                </select>
+            </div>
+
+            <button type="submit" id="submitButton">Crear Pedido</button>
+        </form>
+
+        <div id="responseContainer" class="response-container" hidden>
+            <h3>Respuesta del Servidor</h3>
+            <pre id="respuesta"></pre>
         </div>
-
-        <div class="form-group">
-            <label for="name">Nombre</label>
-            <input type="text" id="name" value="" required>
-        </div>
-
-        <div class="form-group">
-            <label for="lastName">Apellido</label>
-            <input type="text" id="lastName" value="" required>
-        </div>
-
-        <button type="submit" id="submitButton">Crear Pedido</button>
-    </form>
-
-    <div id="responseContainer" class="response-container" hidden>
-        <h3>Respuesta del Servidor</h3>
-        <pre id="respuesta"></pre>
     </div>
-</div>
 
-<script>
-const WORKER_URL = 'https://smartfran.matiasa.workers.dev/'; // ← pon aquí tu URL
+    <script>
+        // Para producción:
+        // const WORKER_URL = 'https://smartfran.matiasa.workers.dev/'; 
+        // Para pruebas locales (Wrangler):
+        const WORKER_URL = 'http://localhost:8787/';
 
-document.getElementById('pedidoForm').addEventListener('submit', async e => {
-    e.preventDefault();
+        // --- Lógica de Dependencia Tenant/Plataforma (Bloqueo Visual) ---
+        const tenantSelect = document.getElementById('tenant');
+        const platformSelect = document.getElementById('platform');
+        const pedigridoOption = platformSelect.querySelector('option[value="pedigrido"]');
 
-    const branch   = document.getElementById('branch').value.trim();
-    const name     = document.getElementById('name').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    
-    const responseContainer = document.getElementById('responseContainer');
-    const out      = document.getElementById('respuesta');
-    const button   = document.getElementById('submitButton');
+        const updatePlatformOptions = () => {
+            if (tenantSelect.value === 'weiss') {
+                // Si es Weiss, ocultamos y deshabilitamos Pedigrido
+                pedigridoOption.hidden = true;
+                pedigridoOption.disabled = true;
+                if (platformSelect.value === 'pedigrido') {
+                    platformSelect.value = 'pedidosya';
+                }
+            } else {
+                // Si es Grido, mostramos y habilitamos todo
+                pedigridoOption.hidden = false;
+                pedigridoOption.disabled = false;
+            }
+        };
 
-    // --- UX Mejorada: Feedback al usuario ---
-    button.disabled = true;
-    button.textContent = 'Enviando...';
-    responseContainer.hidden = false;
-    out.textContent = 'Procesando la solicitud...';
+        // Ejecutar al cambiar y al cargar la página
+        tenantSelect.addEventListener('change', updatePlatformOptions);
+        window.addEventListener('DOMContentLoaded', updatePlatformOptions);
 
-    try {
-        const res = await fetch(WORKER_URL, {
-            method : 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body   : JSON.stringify({ branch, user:{ name, lastName } })
+        document.getElementById('pedidoForm').addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const branch = document.getElementById('branch').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const tenant = tenantSelect.value;
+            const platform = platformSelect.value;
+            const environment = document.getElementById('environment').value;
+
+            const responseContainer = document.getElementById('responseContainer');
+            const out = document.getElementById('respuesta');
+            const button = document.getElementById('submitButton');
+
+            // --- UX Mejorada: Feedback al usuario ---
+            button.disabled = true;
+            button.textContent = 'Enviando...';
+            responseContainer.hidden = false;
+            out.textContent = 'Procesando la solicitud...';
+
+            // Construcción del nuevo payload
+            const payload = {
+                context: {
+                    tenant: tenant,
+                    platform: platform,
+                    environment: environment
+                },
+                auth: {
+                    user: {
+                        name: name,
+                        lastName: lastName
+                    }
+                },
+                data: {
+                    branchId: Number(branch),
+                    scenario: "default"
+                }
+            };
+
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = await res.text();
+                let pretty;
+                try {
+                    // Intenta formatear la respuesta como JSON
+                    pretty = JSON.stringify(JSON.parse(text), null, 2);
+                } catch {
+                    // Si no es JSON, muestra el texto plano
+                    pretty = text;
+                }
+
+                out.textContent = `Status: ${res.status} ${res.statusText}\n\n${pretty}`;
+
+            } catch (err) {
+                out.textContent = 'Error de red: ' + err.message;
+            } finally {
+                // --- UX Mejorada: Restaurar el botón ---
+                button.disabled = false;
+                button.textContent = 'Crear Pedido';
+            }
         });
-
-        const text = await res.text();
-        let pretty;
-        try {
-            // Intenta formatear la respuesta como JSON
-            pretty = JSON.stringify(JSON.parse(text), null, 2);
-        } catch {
-            // Si no es JSON, muestra el texto plano
-            pretty = text;
-        }
-
-        out.textContent = `Status: ${res.status} ${res.statusText}\n\n${pretty}`;
-
-    } catch (err) {
-        out.textContent = 'Error de red: ' + err.message;
-    } finally {
-        // --- UX Mejorada: Restaurar el botón ---
-        button.disabled = false;
-        button.textContent = 'Crear Pedido';
-    }
-});
-</script>
+    </script>
 
 </body>
+
 </html>
